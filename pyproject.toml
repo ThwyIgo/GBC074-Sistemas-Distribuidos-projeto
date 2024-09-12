@@ -29,8 +29,8 @@ dev = []
 [project.scripts]
 cad-server="biblioteca.cad.cad_server:run"
 cad-client="biblioteca.cad.cad_client:run"
-bib-server="biblioteca.bib_server:run"
-bib-client="biblioteca.bib_client:run"
+bib-server="biblioteca.bib.bib_server:run"
+bib-client="biblioteca.bib.bib_client:run"
 
 [project.urls]
 Homepage = "https://github.com/costadev00/sistemas-distribuidos-projeto"
