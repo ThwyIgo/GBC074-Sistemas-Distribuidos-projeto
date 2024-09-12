@@ -1,3 +1,4 @@
+import json
 from biblioteca import lib
 from biblioteca.cad.Usuario import Usuario
 from biblioteca.gRPC import cadastro_pb2, cadastro_pb2_grpc
@@ -11,20 +12,25 @@ class PortalCadastroServicer(cadastro_pb2_grpc.PortalCadastroServicer, SyncMQTTO
         self.mqtt = lib.connect_mqtt("cad_server", porta)
         self.syncMQTT = SyncMQTT(porta, self, self.mqtt)
 
-    def criarUsuario(self, request: cadastro_pb2.Usuario, propagate: bool) -> cadastro_pb2.Status:
-        reqU = Usuario(request)
-        if not reqU.isValido():
+    def criar(self, request: cadastro_pb2.Usuario, propagate: bool) -> cadastro_pb2.Status:
+        payload = json.loads(request)
+        user = Usuario(cadastro_pb2.Usuario(cpf=payload['cpf'], nome=payload['nome']))
+        if not user.isValido():
             return cadastro_pb2.Status(status=1, msg="Usuário inválido")
-        if reqU in self.usuarios:
+        if user in self.usuarios:
             return cadastro_pb2.Status(status=1, msg="Usuário já existe")
 
         if propagate:    
-            self.syncMQTT.pubUsuario(reqU, CRUD.criar)
-        self.usuarios.add(reqU)
+            self.syncMQTT.pubUsuario(user, CRUD.criar)
+        self.usuarios.add(user)
         return cadastro_pb2.Status(status=0)
     
     def NovoUsuario(self, request: cadastro_pb2.Usuario, context) -> cadastro_pb2.Status:
-        return self.criarUsuario(request, True)
+        req = json.dumps({
+            'cpf': request.cpf,
+            'nome': request.nome,
+        })
+        return self.criar(req, True)
     
     def atualizarUsuario(self, request: Usuario, propagate: bool) -> cadastro_pb2.Status:
         usuarioExistente: Usuario | None = None

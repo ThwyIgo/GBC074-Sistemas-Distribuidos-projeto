@@ -11,7 +11,7 @@ from biblioteca.lib import CRUD
 
 class SyncMQTTOps():
     @abstractmethod
-    def criarUsuario(self, request: cadastro_pb2.Usuario, propagate: bool) -> cadastro_pb2.Status:
+    def criar(self, request: str, propagate: bool) -> cadastro_pb2.Status:
         pass
    
     @abstractmethod
@@ -75,12 +75,12 @@ class SyncMQTT():
 
         @self.mqtt.topic_callback("cad_server/usuario/"+CRUD.criar)
         def criarUsuarioCallback(client: mqtt_client.Client, userdata, msg: mqtt_client.MQTTMessage):
-            payload = json.loads(msg.payload.decode())
+            req = msg.payload.decode()
+            payload = json.loads(req)
             if payload['remetente'] == self.porta:
                 return
             
-            user = cadastro_pb2.Usuario(cpf=payload['cpf'], nome=payload['nome'])
-            self.portalCadastroServicer.criarUsuario(user, False)
+            self.portalCadastroServicer.criar(req, False)
 
         @self.mqtt.topic_callback("cad_server/usuario/sync/" + str(self.porta))
         def _(client: mqtt_client.Client, userdata, msg: mqtt_client.MQTTMessage):
