@@ -14,6 +14,16 @@ class PortalCadastroServicer(cadastro_pb2_grpc.PortalCadastroServicer, SyncMQTTO
 
     def getTopico(self) -> str:
         return "cad_server/usuario"
+    
+    def pub(self, msg: Usuario, operacao: str, topico: str):
+        """Publicar uma operação de usuário no broker MQTT"""
+        payload = json.dumps({
+            'remetente': self.mqtt.port,
+            'cpf': msg.usuario_pb2.cpf,
+            'nome': msg.usuario_pb2.nome,
+            'bloqueado': msg.bloqueado
+        })
+        self.mqtt.publish(topico + operacao, payload)
 
     def criar(self, request: cadastro_pb2.Usuario, propagate: bool) -> cadastro_pb2.Status:
         payload = json.loads(request)
@@ -24,7 +34,7 @@ class PortalCadastroServicer(cadastro_pb2_grpc.PortalCadastroServicer, SyncMQTTO
             return cadastro_pb2.Status(status=1, msg="Usuário já existe")
 
         if propagate:    
-            self.syncMQTT.pubUsuario(user, CRUD.criar, self.getTopico())
+            self.pub(user, CRUD.criar, self.getTopico())
         self.usuarios.add(user)
         return cadastro_pb2.Status(status=0)
     
@@ -44,7 +54,7 @@ class PortalCadastroServicer(cadastro_pb2_grpc.PortalCadastroServicer, SyncMQTTO
 
         if usuarioExistente != None:
             if propagate:
-                self.syncMQTT.pubUsuario(request, CRUD.atualizar, self.getTopico())
+                self.pub(request, CRUD.atualizar, self.getTopico())
 
             self.usuarios.remove(usuarioExistente)
             self.usuarios.add(request)
@@ -65,7 +75,7 @@ class PortalCadastroServicer(cadastro_pb2_grpc.PortalCadastroServicer, SyncMQTTO
 
         if usuario != None:
             if propagate:
-                self.syncMQTT.pubUsuario(usuario, CRUD.deletar, self.getTopico())
+                self.pub(usuario, CRUD.deletar, self.getTopico())
 
             self.usuarios.remove(usuario)
             return cadastro_pb2.Status(status=0)

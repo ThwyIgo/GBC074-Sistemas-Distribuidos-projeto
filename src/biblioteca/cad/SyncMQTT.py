@@ -34,18 +34,12 @@ class SyncMQTTOps():
     def getTopico(self) -> str:
         pass
 
+    @abstractmethod
+    def pub(self, msg: Usuario, operacao: str, topico: str):
+        pass
+
 class SyncMQTT():
     """Funções que garantem que o estado dos diversos servidores esteja coerente"""
-    def pubUsuario(self, msg: Usuario, operacao: str, topico: str):
-        """Publicar uma operação de usuário no broker MQTT"""
-        payload = json.dumps({
-            'remetente': self.porta,
-            'cpf': msg.usuario_pb2.cpf,
-            'nome': msg.usuario_pb2.nome,
-            'bloqueado': msg.bloqueado
-        })
-        self.mqtt.publish(topico + operacao, payload)
-
     def __init__(self, porta: int, portalCadastroServicer: SyncMQTTOps, mqtt: mqtt_client.Client) -> None:
         self.porta = porta
         self.portalCadastroServicer = portalCadastroServicer
@@ -107,7 +101,7 @@ class SyncMQTT():
                 if msgC.payload.decode() == "ack " + str(self.porta):
                     usuarios = self.portalCadastroServicer.getTodosUsuarios()
                     for usuario in usuarios:
-                        self.pubUsuario(usuario, portaRequisitante, self.portalCadastroServicer.getTopico() + "/sync/")
+                        self.portalCadastroServicer.pub(usuario, portaRequisitante, self.portalCadastroServicer.getTopico() + "/sync/")
                     
                     self.mqtt.publish(self.portalCadastroServicer.getTopico() + "/sync/" + portaRequisitante + "/ack", "fim")
                     
