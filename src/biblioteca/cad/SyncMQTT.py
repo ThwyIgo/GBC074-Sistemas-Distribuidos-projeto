@@ -1,6 +1,7 @@
 from abc import abstractmethod
 import json
 import threading
+from typing import TypeVar, Generic
 
 from paho.mqtt import client as mqtt_client
 
@@ -9,25 +10,26 @@ from biblioteca.gRPC import cadastro_pb2
 from biblioteca import lib
 from biblioteca.lib import CRUD
 
-class SyncMQTTOps():
+T = TypeVar('T')
+class SyncMQTTOps(Generic[T]):
     @abstractmethod
     def criar(self, request: str, propagate: bool) -> cadastro_pb2.Status:
         pass
    
     @abstractmethod
-    def atualizarUsuario(self, request: Usuario, propagate: bool) -> cadastro_pb2.Status:
+    def atualizar(self, request: T, propagate: bool) -> cadastro_pb2.Status:
         pass
     
     @abstractmethod
-    def deletarUsuario(self, request: cadastro_pb2.Identificador, propagate: bool) -> cadastro_pb2.Status:
+    def deletar(self, request: cadastro_pb2.Identificador, propagate: bool) -> cadastro_pb2.Status:
         pass
 
     @abstractmethod
-    def deletarTodosUsuarios(self) -> None:
+    def deletarTodos(self) -> None:
         pass
 
     @abstractmethod
-    def getTodosUsuarios(self) -> set[Usuario]:
+    def getTodos(self) -> set[T]:
         pass
 
     @abstractmethod
@@ -35,7 +37,11 @@ class SyncMQTTOps():
         pass
 
     @abstractmethod
-    def pub(self, msg: Usuario, operacao: str, topico: str):
+    def pub(self, msg: T, operacao: str, topico: str):
+        pass
+
+    @abstractmethod
+    def parseT(self, string: str) -> T:
         pass
 
 class SyncMQTT():
@@ -68,7 +74,7 @@ class SyncMQTT():
                 return
             
             self.espelho = msg.payload.decode()
-            self.portalCadastroServicer.deletarTodosUsuarios()
+            self.portalCadastroServicer.deletarTodos()
             self.mqtt.publish(self.portalCadastroServicer.getTopico() + "/sync/" + str(self.porta) + "/ack", "ack " + self.espelho)
 
         @self.mqtt.topic_callback(self.portalCadastroServicer.getTopico() + "/" + CRUD.criar)
@@ -99,9 +105,9 @@ class SyncMQTT():
 
             def callback(client: mqtt_client.Client, userdata, msgC: mqtt_client.MQTTMessage):
                 if msgC.payload.decode() == "ack " + str(self.porta):
-                    usuarios = self.portalCadastroServicer.getTodosUsuarios()
+                    usuarios = self.portalCadastroServicer.getTodos()
                     for usuario in usuarios:
-                        self.portalCadastroServicer.pub(usuario, portaRequisitante, self.portalCadastroServicer.getTopico() + "/sync/")
+                        self.portalCadastroServicer.pub(usuario, portaRequisitante, self.portalCadastroServicer.getTopico() + "/sync")
                     
                     self.mqtt.publish(self.portalCadastroServicer.getTopico() + "/sync/" + portaRequisitante + "/ack", "fim")
                     
@@ -113,8 +119,8 @@ class SyncMQTT():
             if payload['remetente'] == self.porta:
                 return
             
-            user = Usuario(cadastro_pb2.Usuario(cpf=payload['cpf'], nome=payload['nome']), payload['bloqueado'])
-            self.portalCadastroServicer.atualizarUsuario(user, False)
+            user = self.portalCadastroServicer.parseT(msg.payload.decode())
+            self.portalCadastroServicer.atualizar(user, False)
 
         @self.mqtt.topic_callback(self.portalCadastroServicer.getTopico() + "/" + CRUD.deletar)
         def _(client: mqtt_client.Client, userdata, msg: mqtt_client.MQTTMessage):
@@ -122,6 +128,6 @@ class SyncMQTT():
             if payload['remetente'] == self.porta:
                 return
             
-            self.portalCadastroServicer.deletarUsuario(cadastro_pb2.Identificador(id=payload['cpf']), False)
+            self.portalCadastroServicer.deletar(cadastro_pb2.Identificador(id=payload['cpf']), False)
 
         self.mqtt.loop_start()

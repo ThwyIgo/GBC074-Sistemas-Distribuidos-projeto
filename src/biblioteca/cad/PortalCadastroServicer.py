@@ -5,7 +5,7 @@ from biblioteca.gRPC import cadastro_pb2, cadastro_pb2_grpc
 from biblioteca.cad.SyncMQTT import SyncMQTT, CRUD, SyncMQTTOps
 
 # Funções do SyncMQTTOps são implementadas, e as do gRPC simplesmente as chamam
-class PortalCadastroServicer(cadastro_pb2_grpc.PortalCadastroServicer, SyncMQTTOps):
+class PortalCadastroServicer(cadastro_pb2_grpc.PortalCadastroServicer, SyncMQTTOps[Usuario]):
     def __init__(self, usuarios: set[Usuario], porta: int) -> None:
         super().__init__()
         self.usuarios = usuarios
@@ -15,6 +15,10 @@ class PortalCadastroServicer(cadastro_pb2_grpc.PortalCadastroServicer, SyncMQTTO
     def getTopico(self) -> str:
         return "cad_server/usuario"
     
+    def parseT(self, string: str) -> Usuario:
+        payload = json.loads(string)
+        return Usuario(cadastro_pb2.Usuario(cpf=payload['cpf'], nome=payload['nome']), payload['bloqueado'])
+    
     def pub(self, msg: Usuario, operacao: str, topico: str):
         """Publicar uma operação de usuário no broker MQTT"""
         payload = json.dumps({
@@ -23,7 +27,7 @@ class PortalCadastroServicer(cadastro_pb2_grpc.PortalCadastroServicer, SyncMQTTO
             'nome': msg.usuario_pb2.nome,
             'bloqueado': msg.bloqueado
         })
-        self.mqtt.publish(topico + operacao, payload)
+        self.mqtt.publish(topico + "/" + operacao, payload)
 
     def criar(self, request: cadastro_pb2.Usuario, propagate: bool) -> cadastro_pb2.Status:
         payload = json.loads(request)
@@ -45,7 +49,7 @@ class PortalCadastroServicer(cadastro_pb2_grpc.PortalCadastroServicer, SyncMQTTO
         })
         return self.criar(req, True)
     
-    def atualizarUsuario(self, request: Usuario, propagate: bool) -> cadastro_pb2.Status:
+    def atualizar(self, request: Usuario, propagate: bool) -> cadastro_pb2.Status:
         usuarioExistente: Usuario | None = None
         for u in self.usuarios:
             if u == request:
@@ -64,9 +68,9 @@ class PortalCadastroServicer(cadastro_pb2_grpc.PortalCadastroServicer, SyncMQTTO
         
     def EditaUsuario(self, request: cadastro_pb2.Usuario, context) -> cadastro_pb2.Status:
         reqU = Usuario(request)
-        return self.atualizarUsuario(reqU, True)
+        return self.atualizar(reqU, True)
     
-    def deletarUsuario(self, request: cadastro_pb2.Identificador, propagate: bool) -> cadastro_pb2.Status:
+    def deletar(self, request: cadastro_pb2.Identificador, propagate: bool) -> cadastro_pb2.Status:
         usuario: Usuario | None = None
         for u in self.usuarios:
             if u.usuario_pb2.cpf == request.id:
@@ -83,7 +87,7 @@ class PortalCadastroServicer(cadastro_pb2_grpc.PortalCadastroServicer, SyncMQTTO
             return cadastro_pb2.Status(status=1, msg="Usuário não encontrado.")
         
     def RemoveUsuario(self, request: cadastro_pb2.Identificador, context) -> cadastro_pb2.Status:
-        return self.deletarUsuario(request, True)
+        return self.deletar(request, True)
 
     def ObtemUsuario(self, request: cadastro_pb2.Identificador, context) -> cadastro_pb2.Usuario:
         for usuario in self.usuarios:
@@ -98,8 +102,8 @@ class PortalCadastroServicer(cadastro_pb2_grpc.PortalCadastroServicer, SyncMQTTO
 
     #################################
 
-    def getTodosUsuarios(self) -> set[Usuario]:
+    def getTodos(self) -> set[Usuario]:
         return self.usuarios
 
-    def deletarTodosUsuarios(self) -> None:
+    def deletarTodos(self) -> None:
         self.usuarios = set()
