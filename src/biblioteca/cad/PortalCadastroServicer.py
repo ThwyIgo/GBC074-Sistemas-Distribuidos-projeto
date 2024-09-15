@@ -12,6 +12,9 @@ class PortalCadastroServicer(cadastro_pb2_grpc.PortalCadastroServicer, SyncMQTTO
         self.mqtt = lib.connect_mqtt("cad_server", porta)
         self.syncMQTT = SyncMQTT(porta, self, self.mqtt)
 
+    def getTopico(self) -> str:
+        return "cad_server/usuario"
+
     def criar(self, request: cadastro_pb2.Usuario, propagate: bool) -> cadastro_pb2.Status:
         payload = json.loads(request)
         user = Usuario(cadastro_pb2.Usuario(cpf=payload['cpf'], nome=payload['nome']))
@@ -21,7 +24,7 @@ class PortalCadastroServicer(cadastro_pb2_grpc.PortalCadastroServicer, SyncMQTTO
             return cadastro_pb2.Status(status=1, msg="Usuário já existe")
 
         if propagate:    
-            self.syncMQTT.pubUsuario(user, CRUD.criar)
+            self.syncMQTT.pubUsuario(user, CRUD.criar, self.getTopico())
         self.usuarios.add(user)
         return cadastro_pb2.Status(status=0)
     
@@ -41,13 +44,13 @@ class PortalCadastroServicer(cadastro_pb2_grpc.PortalCadastroServicer, SyncMQTTO
 
         if usuarioExistente != None:
             if propagate:
-                self.syncMQTT.pubUsuario(request, CRUD.atualizar)
+                self.syncMQTT.pubUsuario(request, CRUD.atualizar, self.getTopico())
 
             self.usuarios.remove(usuarioExistente)
             self.usuarios.add(request)
             return cadastro_pb2.Status(status=0)
         else:
-            return cadastro_pb2.Status(status=1)
+            return cadastro_pb2.Status(status=1, msg="Usuário não encontrado.")
         
     def EditaUsuario(self, request: cadastro_pb2.Usuario, context) -> cadastro_pb2.Status:
         reqU = Usuario(request)
@@ -62,12 +65,12 @@ class PortalCadastroServicer(cadastro_pb2_grpc.PortalCadastroServicer, SyncMQTTO
 
         if usuario != None:
             if propagate:
-                self.syncMQTT.pubUsuario(usuario, CRUD.deletar)
+                self.syncMQTT.pubUsuario(usuario, CRUD.deletar, self.getTopico())
 
             self.usuarios.remove(usuario)
             return cadastro_pb2.Status(status=0)
         else:
-            return cadastro_pb2.Status(status=1)
+            return cadastro_pb2.Status(status=1, msg="Usuário não encontrado.")
         
     def RemoveUsuario(self, request: cadastro_pb2.Identificador, context) -> cadastro_pb2.Status:
         return self.deletarUsuario(request, True)
