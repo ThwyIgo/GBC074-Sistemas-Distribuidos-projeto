@@ -1,16 +1,18 @@
 import json
-from biblioteca import lib
+
+from paho.mqtt import client as mqtt_client
+
 from biblioteca.cad.Usuario import Usuario
 from biblioteca.gRPC import cadastro_pb2, cadastro_pb2_grpc
 from biblioteca.cad.SyncMQTT import SyncMQTT, CRUD, SyncMQTTOps
 
 # Funções do SyncMQTTOps são implementadas, e as do gRPC simplesmente as chamam
-class PortalCadastroServicer(cadastro_pb2_grpc.PortalCadastroServicer, SyncMQTTOps[Usuario]):
-    def __init__(self, usuarios: set[Usuario], porta: int) -> None:
+class UsuariosServicer(cadastro_pb2_grpc.PortalCadastroServicer, SyncMQTTOps[Usuario]):
+    def __init__(self, usuarios: set[Usuario], mqtt: mqtt_client.Client, id: int) -> None:
         super().__init__()
         self.usuarios = usuarios
-        self.mqtt = lib.connect_mqtt("cad_server", porta)
-        self.syncMQTT = SyncMQTT(porta, self, self.mqtt)
+        self.mqtt = mqtt
+        self.syncMQTT = SyncMQTT(self, self.mqtt, id)
 
     def getTopico(self) -> str:
         return "cad_server/usuario"
@@ -29,7 +31,7 @@ class PortalCadastroServicer(cadastro_pb2_grpc.PortalCadastroServicer, SyncMQTTO
         })
         self.mqtt.publish(topico + "/" + operacao, payload)
 
-    def criar(self, request: cadastro_pb2.Usuario, propagate: bool) -> cadastro_pb2.Status:
+    def criar(self, request: str, propagate: bool) -> cadastro_pb2.Status:
         payload = json.loads(request)
         user = Usuario(cadastro_pb2.Usuario(cpf=payload['cpf'], nome=payload['nome']))
         if not user.isValido():

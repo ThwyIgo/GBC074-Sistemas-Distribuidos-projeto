@@ -46,14 +46,14 @@ class SyncMQTTOps(Generic[T]):
 
 class SyncMQTT():
     """Funções que garantem que o estado dos diversos servidores esteja coerente"""
-    def __init__(self, porta: int, servicer: SyncMQTTOps, mqtt: mqtt_client.Client) -> None:
-        self.porta = porta # Também é o ID do servidor
+    def __init__(self, servicer: SyncMQTTOps, mqtt: mqtt_client.Client, id: int) -> None:
+        self.id = id
         self.servicer = servicer
         self.mqtt = mqtt
         self.mqtt.subscribe("cad_server/#")
         self.espelho = ""
         self.atualizado = False
-        self.mqtt.publish(self.servicer.getTopico() + "/sync", f'{self.porta}')
+        self.mqtt.publish(self.servicer.getTopico() + "/sync", f'{self.id}')
 
         """Se ninguém se oferecer para ser a base de dados após 3s,
           assume-se que ninguém tem dados ainda e não há necessidade de sincronização """
@@ -63,7 +63,7 @@ class SyncMQTT():
                 print("Sincronização concluída, nada para sincronizar")
         threading.Timer(3, timeout).start()
 
-        @self.mqtt.topic_callback(self.servicer.getTopico() + "/sync/" + str(self.porta) + "/ack")
+        @self.mqtt.topic_callback(self.servicer.getTopico() + "/sync/" + str(self.id) + "/ack")
         def _(client: mqtt_client.Client, userdata, msg: mqtt_client.MQTTMessage):
             """Escolher um espelho com o qual irá se sincronizar"""
             if msg.payload.decode() == "fim":
@@ -75,18 +75,18 @@ class SyncMQTT():
             
             self.espelho = msg.payload.decode()
             self.servicer.deletarTodos()
-            self.mqtt.publish(self.servicer.getTopico() + "/sync/" + str(self.porta) + "/ack", "ack " + self.espelho)
+            self.mqtt.publish(self.servicer.getTopico() + "/sync/" + str(self.id) + "/ack", "ack " + self.espelho)
 
         @self.mqtt.topic_callback(self.servicer.getTopico() + "/" + CRUD.criar)
         def criarCallback(client: mqtt_client.Client, userdata, msg: mqtt_client.MQTTMessage):
             req = msg.payload.decode()
             payload = json.loads(req)
-            if payload['remetente'] == self.porta:
+            if payload['remetente'] == self.id:
                 return
             
             self.servicer.criar(req, False)
 
-        @self.mqtt.topic_callback(self.servicer.getTopico() + "/sync/" + str(self.porta))
+        @self.mqtt.topic_callback(self.servicer.getTopico() + "/sync/" + str(self.id))
         def _(client: mqtt_client.Client, userdata, msg: mqtt_client.MQTTMessage):
             """Sincronizando usuários..."""
             criarCallback(client, userdata, msg)
@@ -98,13 +98,13 @@ class SyncMQTT():
                 return
             
             portaRequisitante = msg.payload.decode()
-            if portaRequisitante == str(self.porta):
+            if portaRequisitante == str(self.id):
                 return
             
-            mqtt.publish(self.servicer.getTopico() + "/sync/" + portaRequisitante + "/ack", str(self.porta))
+            mqtt.publish(self.servicer.getTopico() + "/sync/" + portaRequisitante + "/ack", str(self.id))
 
             def callback(client: mqtt_client.Client, userdata, msgC: mqtt_client.MQTTMessage):
-                if msgC.payload.decode() == "ack " + str(self.porta):
+                if msgC.payload.decode() == "ack " + str(self.id):
                     data = self.servicer.getTodos()
                     for d in data:
                         self.servicer.pub(d, portaRequisitante, self.servicer.getTopico() + "/sync")
@@ -116,7 +116,7 @@ class SyncMQTT():
         @self.mqtt.topic_callback(self.servicer.getTopico() + "/" + CRUD.atualizar)
         def _(client: mqtt_client.Client, userdata, msg: mqtt_client.MQTTMessage):
             payload = json.loads(msg.payload.decode())
-            if payload['remetente'] == self.porta:
+            if payload['remetente'] == self.id:
                 return
             
             user = self.servicer.parseT(msg.payload.decode())
@@ -125,7 +125,7 @@ class SyncMQTT():
         @self.mqtt.topic_callback(self.servicer.getTopico() + "/" + CRUD.deletar)
         def _(client: mqtt_client.Client, userdata, msg: mqtt_client.MQTTMessage):
             payload = json.loads(msg.payload.decode())
-            if payload['remetente'] == self.porta:
+            if payload['remetente'] == self.id:
                 return
             
             self.servicer.deletar(cadastro_pb2.Identificador(id=payload['cpf']), False)
