@@ -8,7 +8,7 @@ class Livro():
 
     def isValido(self):
         return all(
-            [ len(self.livro_pb2.isbn) == 13 or len(self.livro_pb2.isbn) == 11
+            [ len(self.livro_pb2.isbn) == 13 or len(self.livro_pb2.isbn) == 10
             , self.livro_pb2.isbn.isdigit()
             , self.livro_pb2.total >= 0
             ])

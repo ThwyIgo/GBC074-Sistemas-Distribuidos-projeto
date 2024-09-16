@@ -16,10 +16,10 @@ def run():
         print("""
 Opções:
 0 - Sair
-1 - Criar usuário
-2 - Deletar usuário
-3 - Atualizar usuário
-4 - Buscar usuário
+1 - Criar usuário     | 5 - Criar livro
+2 - Deletar usuário   | 6 - Deletar livro
+3 - Atualizar usuário | 7 - Atualizar livro
+4 - Buscar usuário    | 8 - Buscar livro
               """)
         match int(input("Digite um número: ")):
             case 0:
@@ -32,6 +32,14 @@ Opções:
                 atualizarUsuario()
             case 4:
                 buscarUsuario()
+            case 5:
+                criarLivro()
+            case 6:
+                deletarLivro()
+            case 7:
+                atualizarLivro()
+            case 8:
+                buscarLivro()
 
 def criarUsuario():
         print("Criando usuário")
@@ -62,6 +70,38 @@ def buscarUsuario():
         print("Buscando usuário")
         usuario = stub.ObtemUsuario(cadastro_pb2.Identificador(id=input("cpf: ")))
         print("Usuário encontrado:")
+        print(usuario)
+
+def criarLivro():
+        print("Criando livro")
+        livro = cadastro_pb2.Livro(isbn=input("isbn: "), titulo=input("título: "), autor=input("autor: "), total=int(input("total: ")))
+        status = stub.NovoLivro(livro)
+        if (status.status == 0):
+            print("Livro criado com sucesso!")
+        else:
+            print(status.msg)
+
+def deletarLivro():
+        print("Deletando livro")
+        status = stub.RemoveLivro(cadastro_pb2.Identificador(id=input("isbn: ")))
+        if (status.status == 0):
+            print("Livro deletado com sucesso!")
+        else:
+             print(status.msg)
+        
+def atualizarLivro():
+    print("Atualizando livro")
+    status = stub.EditaLivro(cadastro_pb2.Livro(isbn=input("isbn: "), titulo=input("novo título: "), 
+                                                autor=input("novo autor: "), total=int(input("novo total: "))))
+    if (status.status == 0):
+        print("Livro atualizado com sucesso!")
+    else:
+        print(status.msg)
+
+def buscarLivro():
+        print("Buscando livro")
+        usuario = stub.ObtemLivro(cadastro_pb2.Identificador(id=input("isbn: ")))
+        print("Livro encontrado:")
         print(usuario)
 
 def connect_stub(porta: int) -> cadastro_pb2_grpc.PortalCadastroStub:
