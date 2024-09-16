@@ -7,10 +7,10 @@ from biblioteca.gRPC import cadastro_pb2, cadastro_pb2_grpc
 from biblioteca.cad.SyncMQTT import SyncMQTT, CRUD, SyncMQTTOps
 
 # Funções do SyncMQTTOps são implementadas, e as do gRPC simplesmente as chamam
-class LivrosServicer(cadastro_pb2_grpc.PortalCadastroServicer, SyncMQTTOps[Livro]):
-    def __init__(self, livros: set[Livro], mqtt: mqtt_client.Client, id: int) -> None:
+class LivrosServicer(SyncMQTTOps[Livro]):
+    def __init__(self, mqtt: mqtt_client.Client, id: int) -> None:
         super().__init__()
-        self.livros = livros
+        self.livros: set[Livro] = set()
         self.mqtt = mqtt
         self.syncMQTT = SyncMQTT(self, self.mqtt, id)
 
@@ -44,16 +44,6 @@ class LivrosServicer(cadastro_pb2_grpc.PortalCadastroServicer, SyncMQTTOps[Livro
         self.livros.add(livro)
         return cadastro_pb2.Status(status=0)
     
-    def NovoLivro(self, request: cadastro_pb2.Livro, context) -> cadastro_pb2.Status:
-        req = json.dumps({
-            'remetente': self.mqtt.port,
-            'isbn': request.isbn,
-            'titulo': request.titulo,
-            'autor': request.autor,
-            'total': request.total
-        })
-        return self.criar(req, True)
-    
     def atualizar(self, request: Livro, propagate: bool) -> cadastro_pb2.Status:
         livroExistente: Livro | None = None
         for l in self.livros:
@@ -70,10 +60,6 @@ class LivrosServicer(cadastro_pb2_grpc.PortalCadastroServicer, SyncMQTTOps[Livro
             return cadastro_pb2.Status(status=0)
         else:
             return cadastro_pb2.Status(status=1, msg="Livro não encontrado.")
-        
-    def EditaLivro(self, request: cadastro_pb2.Livro, context) -> cadastro_pb2.Status:
-        reqU = Livro(request)
-        return self.atualizar(reqU, True)
     
     def deletar(self, request: cadastro_pb2.Identificador, propagate: bool) -> cadastro_pb2.Status:
         livro: Livro | None = None
@@ -90,9 +76,6 @@ class LivrosServicer(cadastro_pb2_grpc.PortalCadastroServicer, SyncMQTTOps[Livro
             return cadastro_pb2.Status(status=0)
         else:
             return cadastro_pb2.Status(status=1, msg="Livro não encontrado.")
-        
-    def RemoveLivro(self, request: cadastro_pb2.Identificador, context) -> cadastro_pb2.Status:
-        return self.deletar(request, True)
 
     def ObtemLivro(self, request: cadastro_pb2.Identificador, context) -> cadastro_pb2.Usuario:
         for livro in self.livros:

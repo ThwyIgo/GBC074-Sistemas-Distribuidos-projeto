@@ -7,10 +7,10 @@ from biblioteca.gRPC import cadastro_pb2, cadastro_pb2_grpc
 from biblioteca.cad.SyncMQTT import SyncMQTT, CRUD, SyncMQTTOps
 
 # Funções do SyncMQTTOps são implementadas, e as do gRPC simplesmente as chamam
-class UsuariosServicer(cadastro_pb2_grpc.PortalCadastroServicer, SyncMQTTOps[Usuario]):
-    def __init__(self, usuarios: set[Usuario], mqtt: mqtt_client.Client, id: int) -> None:
+class UsuariosServicer(SyncMQTTOps[Usuario]):
+    def __init__(self, mqtt: mqtt_client.Client, id: int) -> None:
         super().__init__()
-        self.usuarios = usuarios
+        self.usuarios: set[Usuario] = set()
         self.mqtt = mqtt
         self.syncMQTT = SyncMQTT(self, self.mqtt, id)
 
@@ -44,13 +44,6 @@ class UsuariosServicer(cadastro_pb2_grpc.PortalCadastroServicer, SyncMQTTOps[Usu
         self.usuarios.add(user)
         return cadastro_pb2.Status(status=0)
     
-    def NovoUsuario(self, request: cadastro_pb2.Usuario, context) -> cadastro_pb2.Status:
-        req = json.dumps({
-            'cpf': request.cpf,
-            'nome': request.nome,
-        })
-        return self.criar(req, True)
-    
     def atualizar(self, request: Usuario, propagate: bool) -> cadastro_pb2.Status:
         usuarioExistente: Usuario | None = None
         for u in self.usuarios:
@@ -67,10 +60,6 @@ class UsuariosServicer(cadastro_pb2_grpc.PortalCadastroServicer, SyncMQTTOps[Usu
             return cadastro_pb2.Status(status=0)
         else:
             return cadastro_pb2.Status(status=1, msg="Usuário não encontrado.")
-        
-    def EditaUsuario(self, request: cadastro_pb2.Usuario, context) -> cadastro_pb2.Status:
-        reqU = Usuario(request)
-        return self.atualizar(reqU, True)
     
     def deletar(self, request: cadastro_pb2.Identificador, propagate: bool) -> cadastro_pb2.Status:
         usuario: Usuario | None = None
@@ -87,9 +76,6 @@ class UsuariosServicer(cadastro_pb2_grpc.PortalCadastroServicer, SyncMQTTOps[Usu
             return cadastro_pb2.Status(status=0)
         else:
             return cadastro_pb2.Status(status=1, msg="Usuário não encontrado.")
-        
-    def RemoveUsuario(self, request: cadastro_pb2.Identificador, context) -> cadastro_pb2.Status:
-        return self.deletar(request, True)
 
     def ObtemUsuario(self, request: cadastro_pb2.Identificador, context) -> cadastro_pb2.Usuario:
         for usuario in self.usuarios:
