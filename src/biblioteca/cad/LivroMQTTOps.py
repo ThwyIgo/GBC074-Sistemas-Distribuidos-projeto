@@ -2,12 +2,11 @@ import json
 
 from paho.mqtt import client as mqtt_client
 
-from biblioteca.cad.Livro import Livro
-from biblioteca.gRPC import cadastro_pb2, cadastro_pb2_grpc
-from biblioteca.cad.SyncMQTT import SyncMQTT, CRUD, SyncMQTTOps
+from biblioteca.cad import Livro, SyncMQTT, SyncMQTTOps, CRUD
+from biblioteca.gRPC import cadastro_pb2
 
 # Funções do SyncMQTTOps são implementadas, e as do gRPC simplesmente as chamam
-class LivrosServicer(SyncMQTTOps[Livro]):
+class LivroMQTTOps(SyncMQTTOps[Livro]):
     def __init__(self, mqtt: mqtt_client.Client, id: int) -> None:
         super().__init__()
         self.livros: set[Livro] = set()

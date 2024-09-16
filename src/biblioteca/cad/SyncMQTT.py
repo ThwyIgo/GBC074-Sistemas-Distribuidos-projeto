@@ -5,9 +5,7 @@ from typing import TypeVar, Generic
 
 from paho.mqtt import client as mqtt_client
 
-from biblioteca.cad.Usuario import Usuario
 from biblioteca.gRPC import cadastro_pb2
-from biblioteca import lib
 from biblioteca.lib import CRUD
 
 T = TypeVar('T')

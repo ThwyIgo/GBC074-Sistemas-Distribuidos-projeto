@@ -2,7 +2,6 @@ import sys
 
 import grpc
 
-from biblioteca import lib
 from biblioteca.gRPC import cadastro_pb2, cadastro_pb2_grpc
 
 stub: cadastro_pb2_grpc.PortalCadastroStub = None

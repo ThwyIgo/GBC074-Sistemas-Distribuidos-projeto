@@ -3,10 +3,8 @@ import sys
 
 import grpc
 
-from biblioteca.cad.PortalCadastroServicer import PortalCadastroServicer
+from biblioteca.cad import PortalCadastroServicer
 from biblioteca.gRPC import cadastro_pb2_grpc
-from biblioteca.cad.Usuario import Usuario
-from biblioteca.cad.Livro import Livro
 from biblioteca import lib
 
 def run():
