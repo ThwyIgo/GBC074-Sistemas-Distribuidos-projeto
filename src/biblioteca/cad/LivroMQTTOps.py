@@ -23,7 +23,7 @@ class LivroMQTTOps(SyncMQTTOps[Livro]):
     def pub(self, msg: Livro, operacao: str, topico: str):
         """Publicar uma operação de usuário no broker MQTT"""
         payload = json.dumps({
-            'remetente': self.mqtt.port,
+            'remetente': self.syncMQTT.id,
             'isbn': msg.livro_pb2.isbn,
             'titulo': msg.livro_pb2.titulo,
             'autor': msg.livro_pb2.autor,

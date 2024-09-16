@@ -126,6 +126,7 @@ class SyncMQTT():
             if payload['remetente'] == self.id:
                 return
             
+            # TODO cpf não existe em Livro
             self.servicer.deletar(cadastro_pb2.Identificador(id=payload['cpf']), False)
 
         self.mqtt.loop_start()

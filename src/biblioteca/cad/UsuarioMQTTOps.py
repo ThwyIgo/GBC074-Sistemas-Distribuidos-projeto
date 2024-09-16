@@ -23,7 +23,7 @@ class UsuarioMQTTOps(SyncMQTTOps[Usuario]):
     def pub(self, msg: Usuario, operacao: str, topico: str):
         """Publicar uma operação de usuário no broker MQTT"""
         payload = json.dumps({
-            'remetente': self.mqtt.port,
+            'remetente': self.syncMQTT.id,
             'cpf': msg.usuario_pb2.cpf,
             'nome': msg.usuario_pb2.nome,
             'bloqueado': msg.bloqueado
