@@ -13,3 +13,25 @@ alterações no código fonte serão refletidas diretamente no projeto instalado
 os scripts de execução poderão ser utilizados com uma menor margem para erros.  
 É necessário iniciar o mosquitto manualmente antes de executar os scripts,
 exceto o compile.sh.  
+
+# JSONs utilizados
+Foi utilizado um campo "remetente" para que um servidor possa identificar uma mensagem que ele mesmo pulicou e assim não fazer operações repetidas.  
+Para sincronização de Usuários entre servidores de cadastro:  
+```json
+{
+    "remetente": int,
+    "cpf": string,
+    "nome": string,
+    "bloqueado": bool
+}
+```
+Para sincronização de Livros entre servidores de cadastro:  
+```json
+{
+    "remetente": int,
+    "isbn": string,
+    "titulo": string,
+    "autor": string,
+    "total": int
+}
+```

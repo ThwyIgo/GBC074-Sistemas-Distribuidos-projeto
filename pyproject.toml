@@ -6,7 +6,6 @@ build-backend = "setuptools.build_meta"
 name = "biblioteca"
 version = "0.0.1"
 authors = [
-  { name="Matheus Costa Monteiro", email="matheuscostamonteiro.mc@ufu.br" },
   { name="Thiago Pacheco Rocha", email="thiago.rocha@ufu.br" },
 ]
 description = "Sistema de biblioteca para projeto da disciplina sistemas distribuídos."
