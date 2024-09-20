@@ -20,3 +20,6 @@ def run():
     server.add_insecure_port(f"localhost:{porta}")
     server.start()
     server.wait_for_termination()
+
+if __name__ == '__main__':
+    run()

@@ -11,7 +11,6 @@ def run():
     global stub
     stub = connect_stub(porta)
 
-    # Loop só para testes
     while True:
         print("""
 Opções:
