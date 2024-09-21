@@ -40,6 +40,19 @@ def emprestimo():
     else:
         print(status.msg)
 
+def devolucao():
+    print("Realizando devolução")
+    lista: list[biblioteca_pb2.UsuarioLivro] = []
+    while input("Realizar nova devolução? [s/n] ") == "s":
+        cpf = biblioteca_pb2.Identificador(id=input("cpf: "))
+        isbn = biblioteca_pb2.Identificador(id=input("isbn: "))
+        lista.append(biblioteca_pb2.UsuarioLivro(usuario=cpf, livro=isbn))
+
+    status = stub.RealizaDevolucao(iter(lista))
+    if status.status == 0:
+        print("Devoluções realizadas com sucesso!")
+    else:
+        print(status.msg)
 
 def connect_stub(porta: int) -> biblioteca_pb2_grpc.PortalBibliotecaStub:
     channel = grpc.insecure_channel(f"localhost:{porta}")

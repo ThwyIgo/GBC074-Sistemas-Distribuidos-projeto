@@ -9,7 +9,8 @@ class PortalBibliotecaServicer(biblioteca_pb2_grpc.PortalBibliotecaServicer, Syn
     def __init__(self, mqtt: mqtt_client.Client, id: int) -> None:
         super().__init__()
         self.mqtt = mqtt
-        self.emprestimos: dict[str, set[biblioteca_pb2.Livro]] = dict()
+        # Dict de cpf, isbn
+        self.emprestimos: dict[str, set[str]] = dict()
         self.livros: dict[str, Livro] = dict()
         self.syncMQTT = SyncMQTT(self, self.mqtt, -id)
         self.mqtt.loop_start() # TODO
@@ -28,6 +29,8 @@ class PortalBibliotecaServicer(biblioteca_pb2_grpc.PortalBibliotecaServicer, Syn
         
     def RealizaEmprestimo(self, request_iterator, context) -> biblioteca_pb2.Status:
         for usuarioLivro in request_iterator:
+            if usuarioLivro.livro.id not in self.livros:
+                return biblioteca_pb2.Status(status=1, msg="Livro não encontrado")
             livro: biblioteca_pb2.Livro = self.livros[usuarioLivro.livro.id]
             if (livro.total <= 0):
                 return biblioteca_pb2.Status(status=1,
@@ -43,5 +46,23 @@ class PortalBibliotecaServicer(biblioteca_pb2_grpc.PortalBibliotecaServicer, Syn
                 livros = set()
                 self.emprestimos[usuarioLivro.usuario.id] = livros
 
-            livros.add(Livro(livro))
+            livros.add(livro.isbn)
             return biblioteca_pb2.Status(status=0)
+        
+    def RealizaDevolucao(self, request_iterator, context) -> biblioteca_pb2.Status:
+        for usuarioLivro in request_iterator:
+            if usuarioLivro.usuario.id in self.emprestimos:
+                livros = self.emprestimos[usuarioLivro.usuario.id]
+                try:
+                    livros.remove(usuarioLivro.livro.id)
+                    return biblioteca_pb2.Status(status=0)
+                except KeyError:
+                    return biblioteca_pb2.Status(status=1,
+                                                 msg="O livro com isbn " 
+                                                 + usuarioLivro.livro.id
+                                                 + " não está emprestado ao usuário "
+                                                 + usuarioLivro.usuario.id)
+            else:
+                return biblioteca_pb2.Status(status=1,
+                                             msg="Não há nenhum empréstimo ao usuário "
+                                             + usuarioLivro.usuario.id)
