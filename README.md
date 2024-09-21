@@ -35,3 +35,7 @@ Para sincronização de Livros entre servidores de cadastro:
     "total": int
 }
 ```
+
+# Funcionalidades não implementadas
+- Funções de listagem e pesquisa do portal biblioteca
+- Bloqueio de usuários
