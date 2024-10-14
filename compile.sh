@@ -42,7 +42,7 @@ genRequirements() {
 
 installDeps() {
     isDebug && printf "Instalando dependências...\n"
-    $PYTHON -m pip install -U pip wheel setuptools build paho-mqtt
+    $PYTHON -m pip install -U pip wheel setuptools build pysyncobj
     $PYTHON -m pip install -U grpcio-tools
 }
 

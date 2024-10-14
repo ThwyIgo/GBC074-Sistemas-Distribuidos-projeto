@@ -1,16 +1,11 @@
 import json
 
-from paho.mqtt import client as mqtt_client
-
 from biblioteca.gRPC import cadastro_pb2, cadastro_pb2_grpc
-from biblioteca.cad import Usuario, UsuarioMQTTOps, Livro, LivroMQTTOps
+from biblioteca.cad import Usuario, Livro
 
 class PortalCadastroServicer(cadastro_pb2_grpc.PortalCadastroServicer):
-    def __init__(self, mqtt: mqtt_client.Client, id: int) -> None:
+    def __init__(self, id: int) -> None:
         super().__init__()
-        self.mqtt = mqtt
-        self.usuariosServicer = UsuarioMQTTOps(self.mqtt, id)
-        self.livrosServicer = LivroMQTTOps(self.mqtt, id)
 
     def NovoUsuario(self, request: cadastro_pb2.Usuario, context) -> cadastro_pb2.Status:
         req = json.dumps({

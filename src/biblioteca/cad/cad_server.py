@@ -5,7 +5,6 @@ import grpc
 
 from biblioteca.cad import PortalCadastroServicer
 from biblioteca.gRPC import cadastro_pb2_grpc
-from biblioteca import lib
 
 def run():
     if len(sys.argv) != 2:
@@ -17,9 +16,8 @@ def run():
     serve(porta)
 
 def serve(porta: int):
-    mqtt = lib.connect_mqtt("cad_server", porta)
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
-    cadastro_pb2_grpc.add_PortalCadastroServicer_to_server(PortalCadastroServicer(mqtt, porta), server)
+    cadastro_pb2_grpc.add_PortalCadastroServicer_to_server(PortalCadastroServicer(porta), server)
     server.add_insecure_port(f"localhost:{porta}")
     server.start()
     server.wait_for_termination()

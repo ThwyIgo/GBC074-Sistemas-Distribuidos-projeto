@@ -1,22 +1,14 @@
 import json
 
-from paho.mqtt import client as mqtt_client
-
 from biblioteca.gRPC import biblioteca_pb2_grpc, biblioteca_pb2
-from biblioteca.cad import SyncMQTT, SyncMQTTOps, Livro
+from biblioteca.cad import Livro
 
-class PortalBibliotecaServicer(biblioteca_pb2_grpc.PortalBibliotecaServicer, SyncMQTTOps[biblioteca_pb2.Livro]):
-    def __init__(self, mqtt: mqtt_client.Client, id: int) -> None:
+class PortalBibliotecaServicer(biblioteca_pb2_grpc.PortalBibliotecaServicer):
+    def __init__(self, id: int) -> None:
         super().__init__()
-        self.mqtt = mqtt
         # Dict de cpf, isbn
         self.emprestimos: dict[str, set[str]] = dict()
         self.livros: dict[str, Livro] = dict()
-        self.syncMQTT = SyncMQTT(self, self.mqtt, -id)
-        self.mqtt.loop_start() # TODO
-
-    def getTopico(self) -> str:
-        return "cad_server/livro"
 
     def criar(self, request: str, propagate: bool) -> biblioteca_pb2.Status:
         livro = self.parseT(request)
