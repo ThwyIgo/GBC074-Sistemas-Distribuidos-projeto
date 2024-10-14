@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 
 from biblioteca.gRPC import cadastro_pb2
+from pysyncobj import SyncObj
 
 @dataclass
 class Usuario():
@@ -19,5 +20,3 @@ class Usuario():
     def __eq__(self, value: object) -> bool:
         if type(value) == type(self):
             return self.usuario_pb2.cpf == value.usuario_pb2.cpf
-        if type(value) == cadastro_pb2.Usuario:
-            return self.usuario_pb2.cpf == value.cpf
