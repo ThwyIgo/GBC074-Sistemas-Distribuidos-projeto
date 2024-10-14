@@ -1,2 +1,2 @@
-from biblioteca.cad.PortalCadastroServicer import PortalCadastroServicer
 from biblioteca.cad.UsuarioManager import UsuarioManager
+from biblioteca.cad.PortalCadastroServicer import PortalCadastroServicer
