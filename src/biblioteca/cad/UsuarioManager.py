@@ -1,5 +1,5 @@
 from pysyncobj import SyncObj, replicated
-from biblioteca.gRPC import biblioteca_pb2
+from biblioteca.gRPC import cadastro_pb2
 
 from biblioteca.common import Usuario
 
@@ -8,33 +8,27 @@ class UsuarioManager(SyncObj):
         super().__init__(selfAddr, otherAddrs)
         self.usuarios: list[Usuario] = list()
 
+    def contains(self, usuario: Usuario) -> bool:
+        return usuario in self.usuarios
+
     @replicated
-    def add(self, usuario: Usuario) -> biblioteca_pb2.Status:
-        if usuario in self.usuarios:
-            return biblioteca_pb2.Status(status=1, msg="Usuário já existe")
-        
+    def add(self, usuario: Usuario) -> None:
         self.usuarios.append(usuario)
-        return biblioteca_pb2.Status(status=0)
     
     @replicated
-    def remove(self, usuario: Usuario) -> biblioteca_pb2.Status:
-        if usuario not in self.usuarios:
-            return biblioteca_pb2.Status(status=1, msg="Usuário não existe")
-        
+    def remove(self, usuario: Usuario) -> None:
         self.usuarios.remove(usuario)
-        return biblioteca_pb2.Status(status=0)
     
     @replicated
-    def update(self, usuario: Usuario) -> biblioteca_pb2.Status:
-        if usuario not in self.usuarios:
-            return biblioteca_pb2.Status(status=1, msg="Usuário não existe")
-        
+    def update(self, usuario: Usuario) -> None:
         self.usuarios[self.usuarios.index(usuario)] = usuario
-        return biblioteca_pb2.Status(status=0)
     
     def get(self, cpf: str) -> Usuario:
-        return next([u for u in self.usuarios if u.usuario_pb2.cpf == cpf],
-                    Usuario())
+        for usuario in self.usuarios:
+            if usuario.usuario_pb2.cpf == cpf:
+                return usuario
+            
+        return Usuario(cadastro_pb2.Usuario())
     
     def getAll(self) -> list[Usuario]:
         return self.usuarios

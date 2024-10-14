@@ -8,19 +8,35 @@ class PortalCadastroServicer(cadastro_pb2_grpc.PortalCadastroServicer):
         self.usuarioManager = UsuarioManager('localhost:'+selfPorta, map(lambda a: 'localhost:'+a, otherPortas))
 
     def NovoUsuario(self, request: cadastro_pb2.Usuario, context) -> cadastro_pb2.Status:
-        return self.usuarioManager.add(Usuario(request))
+        usuario = Usuario(request)
+        if self.usuarioManager.contains(usuario):
+            return cadastro_pb2.Status(status=1, msg="Usuário já existe")
+        
+        self.usuarioManager.add(usuario)
+        return cadastro_pb2.Status(status=0)
 
     def EditaUsuario(self, request: cadastro_pb2.Usuario, context) -> cadastro_pb2.Status:
-        return self.usuarioManager.update(Usuario(request))
+        usuario = Usuario(request)
+        if self.usuarioManager.contains(usuario):
+            return cadastro_pb2.Status(status=1, msg="Usuário não existe")
+        
+        self.usuarioManager.update(usuario)
+        return cadastro_pb2.Status(status=0)
     
     def RemoveUsuario(self, request: cadastro_pb2.Identificador, context) -> cadastro_pb2.Status:
-        return self.usuarioManager.remove(Usuario(request))
+        usuario = Usuario(request)
+        if self.usuarioManager.contains(usuario):
+            return cadastro_pb2.Status(status=1, msg="Usuário não existe")
+        
+        self.usuarioManager.remove(usuario)
+        return cadastro_pb2.Status(status=0)
     
     def ObtemUsuario(self, request: cadastro_pb2.Identificador, context) -> cadastro_pb2.Usuario:
-        return self.usuarioManager.get(request.id)
+        return self.usuarioManager.get(request.id).usuario_pb2
     
     def ObtemTodosUsuarios(self, request: cadastro_pb2.Vazia, context):
-        return self.usuarioManager.getAll()
+        for usuario in self.usuarioManager.getAll():
+            yield usuario.usuario_pb2
     
     def NovoLivro(self, request: cadastro_pb2.Livro, context) -> cadastro_pb2.Status:
         pass
