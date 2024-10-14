@@ -4,7 +4,7 @@ import sys
 import grpc
 from biblioteca.gRPC import biblioteca_pb2_grpc
 
-from biblioteca import lib
+from biblioteca.common import lib
 from biblioteca.bib.PortalBibliotecaServicer import PortalBibliotecaServicer
 
 def run():

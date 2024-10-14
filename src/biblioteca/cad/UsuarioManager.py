@@ -1,12 +1,12 @@
 from pysyncobj import SyncObj, replicated
 from biblioteca.gRPC import biblioteca_pb2
 
-from biblioteca.cad import Usuario
+from biblioteca.common import Usuario
 
 class UsuarioManager(SyncObj):
     def __init__(self, selfAddr: str, otherAddrs: list[str]):
         super().__init__(selfAddr, otherAddrs)
-        self.usuarios = list[Usuario]
+        self.usuarios: list[Usuario] = list()
 
     @replicated
     def add(self, usuario: Usuario) -> biblioteca_pb2.Status:
@@ -31,3 +31,10 @@ class UsuarioManager(SyncObj):
         
         self.usuarios[self.usuarios.index(usuario)] = usuario
         return biblioteca_pb2.Status(status=0)
+    
+    def get(self, cpf: str) -> Usuario:
+        return next([u for u in self.usuarios if u.usuario_pb2.cpf == cpf],
+                    Usuario())
+    
+    def getAll(self) -> list[Usuario]:
+        return self.usuarios
