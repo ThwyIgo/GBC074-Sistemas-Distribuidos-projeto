@@ -1,10 +1,11 @@
+from collections.abc import Iterable
 from biblioteca.gRPC import database_pb2_grpc, database_pb2
 from biblioteca.leveldb.LevelDB import LevelDB
 
 class DatabaseServicer(database_pb2_grpc.DatabaseServicer):
-    def __init__(self, selfPorta: str, otherPortas: list[str]) -> None:
+    def __init__(self, selfPorta: int, otherPortas: Iterable[int]) -> None:
         super().__init__()
-        self.db = LevelDB('/tmp/db/'+selfPorta, 'localhost:'+selfPorta, map(lambda a: 'localhost:'+a, otherPortas))
+        self.db = LevelDB(f'/tmp/db/{selfPorta}', f'localhost:{selfPorta}', map(lambda a: f'localhost:{a}', otherPortas))
 
     def put(self, request: database_pb2.String2, context) -> None:
         return self.db.put(request.fst, request.snd)

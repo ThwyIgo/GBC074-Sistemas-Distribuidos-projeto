@@ -1,10 +1,12 @@
 from collections.abc import Iterable
+from pathlib import Path
 import plyvel
 from pysyncobj import SyncObj, replicated_sync
 
 class LevelDB(SyncObj):
     def __init__(self, dir: str, selfAddr: str, otherAddrs: Iterable[str]) -> None:
         super().__init__(selfAddr, otherAddrs)
+        Path(dir).mkdir(parents=True, exist_ok=True)
         self.db = plyvel.DB(dir, create_if_missing=True)
 
     @replicated_sync
