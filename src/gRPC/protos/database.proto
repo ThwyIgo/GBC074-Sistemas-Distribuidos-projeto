@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package database;
+
+message Vazia {}
+
+message String {
+  string value = 1;
+}
+
+message String2 {
+  string fst = 1;
+  string snd = 2;
+}
+
+message MaybeString {
+  string value = 1;
+  // 0 = sucesso, 1 = erro
+  int32 status = 2;
+}
+
+service PortalBiblioteca {
+  rpc put(String2) returns (Vazia) {}
+  rpc get(String) returns (MaybeString) {}
+  rpc deletar(String) returns (Vazia) {}
+}
