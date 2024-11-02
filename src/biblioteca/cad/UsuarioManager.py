@@ -1,10 +1,11 @@
+from collections.abc import Iterable
 from pysyncobj import SyncObj, replicated
 from biblioteca.gRPC import cadastro_pb2
 
 from biblioteca.common import Usuario
 
 class UsuarioManager(SyncObj):
-    def __init__(self, selfAddr: str, otherAddrs: list[str]):
+    def __init__(self, selfAddr: str, otherAddrs: Iterable[str]):
         super().__init__(selfAddr, otherAddrs)
         self.usuarios: list[Usuario] = list()
 
