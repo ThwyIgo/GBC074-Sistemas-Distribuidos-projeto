@@ -23,4 +23,5 @@ service Database {
   rpc put(String2) returns (Vazia) {}
   rpc get(String) returns (MaybeString) {}
   rpc deletar(String) returns (Vazia) {}
+  rpc getPrefix(String) returns (stream String) {}
 }

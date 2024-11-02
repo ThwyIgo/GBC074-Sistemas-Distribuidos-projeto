@@ -23,3 +23,13 @@ class LevelDB(SyncObj):
     @replicated_sync
     def delete(self, key: str) -> None:
         return self.db.delete(key.encode())
+    
+    def getPrefix(self, prefix: str) -> list[str]:
+        res: list[str] = list()
+
+        for key, value in self.db:
+            keyS: str = key.decode()
+            if key.startswith(prefix):
+                res.append(value.decode())
+
+        return res

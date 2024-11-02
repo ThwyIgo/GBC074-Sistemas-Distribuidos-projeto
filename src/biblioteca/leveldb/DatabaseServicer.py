@@ -19,3 +19,7 @@ class DatabaseServicer(database_pb2_grpc.DatabaseServicer):
         
     def deletar(self, request: database_pb2.String, context):
         return self.db.delete(request.value)
+    
+    def getPrefix(self, request: database_pb2.String, context):
+        for s in self.db.getPrefix(request.value):
+            yield s
