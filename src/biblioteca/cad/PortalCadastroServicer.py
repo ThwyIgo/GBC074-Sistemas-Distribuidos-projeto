@@ -17,15 +17,15 @@ class PortalCadastroServicer(cadastro_pb2_grpc.PortalCadastroServicer):
 
     def EditaUsuario(self, request: cadastro_pb2.Usuario, context) -> cadastro_pb2.Status:
         usuario = Usuario(request)
-        if self.usuarioManager.contains(usuario):
+        if not self.usuarioManager.contains(usuario):
             return cadastro_pb2.Status(status=1, msg="Usuário não existe")
         
         self.usuarioManager.update(usuario)
         return cadastro_pb2.Status(status=0)
     
     def RemoveUsuario(self, request: cadastro_pb2.Identificador, context) -> cadastro_pb2.Status:
-        usuario = Usuario(request)
-        if self.usuarioManager.contains(usuario):
+        usuario = Usuario(cadastro_pb2.Usuario(cpf=request.id))
+        if not self.usuarioManager.contains(usuario):
             return cadastro_pb2.Status(status=1, msg="Usuário não existe")
         
         self.usuarioManager.remove(usuario)

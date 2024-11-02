@@ -17,10 +17,11 @@ in
   name = "FHS";
   targetPkgs = pkgs: with pkgs; [
     (python3.withPackages (pyPkgs: with pyPkgs; [
-      paho-mqtt
+      pysyncobj
+      plyvel
     ]))
-    mosquitto
     vscode'
+    leveldb
   ];
 }
 ).env
