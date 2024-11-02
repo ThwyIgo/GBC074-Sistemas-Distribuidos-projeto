@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "biblioteca"
-version = "0.0.1"
+version = "0.0.2"
 authors = [
   { name="Thiago Pacheco Rocha", email="thiago.rocha@ufu.br" },
 ]
@@ -20,6 +20,7 @@ requires-python = ">=3.11"
 dependencies = [
    "grpcio-tools",
    "pysyncobj",
+   "multimethod",
 ]
 
 [project.optional-dependencies]

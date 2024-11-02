@@ -1,26 +1,20 @@
-from collections.abc import Iterable
-from pysyncobj import SyncObj, replicated
 from biblioteca.gRPC import cadastro_pb2
 
 from biblioteca.common import Usuario
 
-class UsuarioManager(SyncObj):
-    def __init__(self, selfAddr: str, otherAddrs: Iterable[str]):
-        super().__init__(selfAddr, otherAddrs)
+class UsuarioManager():
+    def __init__(self):
         self.usuarios: list[Usuario] = list()
 
     def contains(self, usuario: Usuario) -> bool:
         return usuario in self.usuarios
 
-    @replicated
     def add(self, usuario: Usuario) -> None:
         self.usuarios.append(usuario)
     
-    @replicated
     def remove(self, usuario: Usuario) -> None:
         self.usuarios.remove(usuario)
     
-    @replicated
     def update(self, usuario: Usuario) -> None:
         self.usuarios[self.usuarios.index(usuario)] = usuario
     
