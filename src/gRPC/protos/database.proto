@@ -19,7 +19,7 @@ message MaybeString {
   int32 status = 2;
 }
 
-service PortalBiblioteca {
+service Database {
   rpc put(String2) returns (Vazia) {}
   rpc get(String) returns (MaybeString) {}
   rpc deletar(String) returns (Vazia) {}

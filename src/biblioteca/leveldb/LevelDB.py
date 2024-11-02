@@ -1,6 +1,4 @@
-import json
 from collections.abc import Iterable
-from types import SimpleNamespace
 import plyvel
 from pysyncobj import SyncObj, replicated_sync
 
@@ -10,15 +8,15 @@ class LevelDB(SyncObj):
         self.db = plyvel.DB(dir, create_if_missing=True)
 
     @replicated_sync
-    def put(self, key: str, val: object) -> None:
-        self.db.put(key.encode(), json.dumps(val).encode())
+    def put(self, key: str, val: str) -> None:
+        self.db.put(key.encode(), val.encode())
 
-    def get(self, key: str) -> object | None:
+    def get(self, key: str) -> str | None:
         got: bytes | None = self.db.get(key.encode())
         if got == None:
             return None
         
-        return json.loads(got.decode(), object_hook=lambda d: SimpleNamespace(**d))
+        return got.decode()
     
     @replicated_sync
     def delete(self, key: str) -> None:
