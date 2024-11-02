@@ -19,34 +19,28 @@ class DataManager(SyncObj):
     def contains(self, livro: Livro) -> bool:
         return self.livroManager.contains(livro)
 
-    @multimethod
     @replicated
-    def add(self, usuario: Usuario) -> None:
+    def addUsuario(self, usuario: Usuario) -> None:
         self.usuarioManager.add(usuario)
 
-    @multimethod
     @replicated
-    def add(self, livro: Livro) -> None:
+    def addLivro(self, livro: Livro) -> None:
         self.livroManager.add(livro)
 
-    @multimethod
     @replicated
-    def remove(self, usuario: Usuario) -> None:
+    def removeUsuario(self, usuario: Usuario) -> None:
         self.usuarioManager.remove(usuario)
 
-    @multimethod
     @replicated
-    def remove(self, livro: Livro) -> None:
+    def removeLivro(self, livro: Livro) -> None:
         self.livroManager.remove(livro)
     
-    @multimethod
     @replicated
-    def update(self, usuario: Usuario) -> None:
+    def updateUsuario(self, usuario: Usuario) -> None:
         self.usuarioManager.update(usuario)
 
-    @multimethod
     @replicated
-    def update(self, livro: Livro) -> None:
+    def updateLivro(self, livro: Livro) -> None:
         self.livroManager.update(livro)
     
     def getUsuario(self, cpf: str) -> Usuario:

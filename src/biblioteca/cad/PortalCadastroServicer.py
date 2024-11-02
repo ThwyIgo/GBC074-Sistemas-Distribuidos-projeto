@@ -13,7 +13,7 @@ class PortalCadastroServicer(cadastro_pb2_grpc.PortalCadastroServicer):
         if self.dataManager.contains(usuario):
             return cadastro_pb2.Status(status=1, msg="Usuário já existe")
         
-        self.dataManager.add(usuario)
+        self.dataManager.addUsuario(usuario)
         return cadastro_pb2.Status(status=0)
 
     def EditaUsuario(self, request: cadastro_pb2.Usuario, context) -> cadastro_pb2.Status:
@@ -21,7 +21,7 @@ class PortalCadastroServicer(cadastro_pb2_grpc.PortalCadastroServicer):
         if not self.dataManager.contains(usuario):
             return cadastro_pb2.Status(status=1, msg="Usuário não existe")
         
-        self.dataManager.update(usuario)
+        self.dataManager.updateUsuario(usuario)
         return cadastro_pb2.Status(status=0)
     
     def RemoveUsuario(self, request: cadastro_pb2.Identificador, context) -> cadastro_pb2.Status:
@@ -29,7 +29,7 @@ class PortalCadastroServicer(cadastro_pb2_grpc.PortalCadastroServicer):
         if not self.dataManager.contains(usuario):
             return cadastro_pb2.Status(status=1, msg="Usuário não existe")
         
-        self.dataManager.remove(usuario)
+        self.dataManager.removeUsuario(usuario)
         return cadastro_pb2.Status(status=0)
     
     def ObtemUsuario(self, request: cadastro_pb2.Identificador, context) -> cadastro_pb2.Usuario:
@@ -44,7 +44,7 @@ class PortalCadastroServicer(cadastro_pb2_grpc.PortalCadastroServicer):
         if self.dataManager.contains(livro):
             return cadastro_pb2.Status(status=1, msg="Livro já existe")
         
-        self.dataManager.add(livro)
+        self.dataManager.addLivro(livro)
         return cadastro_pb2.Status(status=0)
     
     def EditaLivro(self, request: cadastro_pb2.Livro, context) -> cadastro_pb2.Status:
@@ -52,7 +52,7 @@ class PortalCadastroServicer(cadastro_pb2_grpc.PortalCadastroServicer):
         if not self.dataManager.contains(livro):
             return cadastro_pb2.Status(status=1, msg="Livro não existe")
         
-        self.dataManager.update(livro)
+        self.dataManager.updateLivro(livro)
         return cadastro_pb2.Status(status=0)
     
     def RemoveLivro(self, request: cadastro_pb2.Identificador, context) -> cadastro_pb2.Status:
@@ -60,7 +60,7 @@ class PortalCadastroServicer(cadastro_pb2_grpc.PortalCadastroServicer):
         if not self.dataManager.contains(livro):
             return cadastro_pb2.Status(status=1, msg="Livro não existe")
         
-        self.dataManager.remove(livro)
+        self.dataManager.removeLivro(livro)
         return cadastro_pb2.Status(status=0)
     
     def ObtemLivro(self, request: cadastro_pb2.Identificador, context) -> cadastro_pb2.Livro:
