@@ -18,6 +18,7 @@ in
   targetPkgs = pkgs: with pkgs; [
     (python3.withPackages (pyPkgs: with pyPkgs; [
       pysyncobj
+      multimethod
       plyvel
     ]))
     vscode'
