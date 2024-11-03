@@ -3,9 +3,9 @@ from biblioteca.common import Usuario, Livro
 from biblioteca.cad import DataManager
 
 class PortalCadastroServicer(cadastro_pb2_grpc.PortalCadastroServicer):
-    def __init__(self, dbPort: int) -> None:
+    def __init__(self, dbUsrPort: int, dbLivPort: int) -> None:
         super().__init__()
-        self.dataManager = DataManager(dbPort)
+        self.dataManager = DataManager(dbUsrPort, dbLivPort)
 
     def NovoUsuario(self, request: cadastro_pb2.Usuario, context) -> cadastro_pb2.Status:
         usuario = Usuario(request)

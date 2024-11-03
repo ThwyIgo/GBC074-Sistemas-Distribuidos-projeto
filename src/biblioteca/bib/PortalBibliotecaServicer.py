@@ -10,19 +10,20 @@ from biblioteca.gRPC import biblioteca_pb2_grpc, biblioteca_pb2, database_pb2_gr
 from biblioteca.common import Usuario, Livro
 
 class PortalBibliotecaServicer(biblioteca_pb2_grpc.PortalBibliotecaServicer):
-    def __init__(self, dbPort: int) -> None:
+    def __init__(self, dbUsrPort: int, dbLivPort: int) -> None:
         super().__init__()
-        self.stub = database_pb2_grpc.DatabaseStub(grpc.insecure_channel(f'localhost:{dbPort}'))
+        self.stubUsr = database_pb2_grpc.DatabaseStub(grpc.insecure_channel(f'localhost:{dbUsrPort}'))
+        self.stubLiv = database_pb2_grpc.DatabaseStub(grpc.insecure_channel(f'localhost:{dbLivPort}'))
         self.usuarios: list[Usuario] = list()
         self.livros: list[Livro] = list()
         self.emprestimos: list[Emprestimo] = list()
         
         def updateCache(p = True):
-            jsons: list[database_pb2.String] = list(self.stub.getPrefix(database_pb2.String(value='U')))
+            jsons: list[database_pb2.String] = list(self.stubUsr.getPrefix(database_pb2.String(value='')))
             self.usuarios = list(map(lambda j: jsonpickle.decode(j.value), jsons)) # type: ignore
-            jsons = list(self.stub.getPrefix(database_pb2.String(value='L')))
+            jsons = list(self.stubLiv.getPrefix(database_pb2.String(value='L')))
             self.livros = list(map(lambda j: jsonpickle.decode(j.value), jsons)) # type: ignore
-            jsons = list(self.stub.getPrefix(database_pb2.String(value='E')))
+            jsons = list(self.stubLiv.getPrefix(database_pb2.String(value='E')))
             self.emprestimos = list(map(lambda j: jsonpickle.decode(j.value), jsons)) # type: ignore
 
             print("Cache atualizado")
@@ -51,13 +52,13 @@ class PortalBibliotecaServicer(biblioteca_pb2_grpc.PortalBibliotecaServicer):
                 return biblioteca_pb2.Status(status=1, msg="Empréstimo já existe")
             
             livro.livro_pb2.total -= 1
-            self.stub.put(database_pb2.String2(
+            self.stubLiv.put(database_pb2.String2(
                 fst='L'+livro.livro_pb2.isbn,
                 snd=jsonpickle.encode(livro)
             ))
             
-            self.stub.put(database_pb2.String2(
-                fst='E'+usuario.usuario_pb2.cpf,
+            self.stubLiv.put(database_pb2.String2(
+                fst='E'+usuario.usuario_pb2.cpf+livro.livro_pb2.isbn,
                 snd=jsonpickle.encode(emprestimo)
             ))
 
@@ -76,12 +77,12 @@ class PortalBibliotecaServicer(biblioteca_pb2_grpc.PortalBibliotecaServicer):
                 return biblioteca_pb2.Status(status=1, msg="Empréstimo não encontrado")
             
             livro.livro_pb2.total += 1
-            self.stub.put(database_pb2.String2(
+            self.stubLiv.put(database_pb2.String2(
                 fst='L'+livro.livro_pb2.isbn,
                 snd=jsonpickle.encode(livro)
             ))
             
-            self.stub.deletar(database_pb2.String(value='E'+usuario.usuario_pb2.cpf))
+            self.stubLiv.deletar(database_pb2.String(value='E'+usuario.usuario_pb2.cpf))
             #TODO desbloquear usuário se ele não tiver livros atrasados
             self.updateCache(False)
             

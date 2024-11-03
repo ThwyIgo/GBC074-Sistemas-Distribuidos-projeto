@@ -12,7 +12,7 @@ class UsuarioManager():
         self.stub = stub
         
         def updateCache(p = True):
-            jsons: list[database_pb2.String] = list(self.stub.getPrefix(database_pb2.String(value='U')))
+            jsons: list[database_pb2.String] = list(self.stub.getPrefix(database_pb2.String(value='')))
             self.usuarios = list(map(lambda j: jsonpickle.decode(j.value), jsons)) # type: ignore
 
             print("Cache usuários atualizado")
@@ -28,17 +28,17 @@ class UsuarioManager():
 
     def add(self, usuario: Usuario) -> None:
         self.usuarios.append(usuario)
-        self.stub.put(database_pb2.String2(fst='U'+usuario.usuario_pb2.cpf, snd=jsonpickle.encode(usuario))) # Falha aqui
+        self.stub.put(database_pb2.String2(fst=usuario.usuario_pb2.cpf, snd=jsonpickle.encode(usuario))) # Falha aqui
         self.updateCache(False)
     
     def remove(self, usuario: Usuario) -> None:
         self.usuarios.remove(usuario)
-        self.stub.deletar(database_pb2.String(value='U'+usuario.usuario_pb2.cpf))
+        self.stub.deletar(database_pb2.String(value=usuario.usuario_pb2.cpf))
         self.updateCache(False)
     
     def update(self, usuario: Usuario) -> None:
         self.usuarios[self.usuarios.index(usuario)] = usuario
-        self.stub.put(database_pb2.String2(fst='U'+usuario.usuario_pb2.cpf, snd=jsonpickle.encode(usuario)))
+        self.stub.put(database_pb2.String2(fst=usuario.usuario_pb2.cpf, snd=jsonpickle.encode(usuario)))
         self.updateCache(False)
     
     def get(self, cpf: str) -> Usuario:

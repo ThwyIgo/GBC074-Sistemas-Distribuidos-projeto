@@ -7,18 +7,24 @@ from biblioteca.cad import PortalCadastroServicer
 from biblioteca.gRPC import cadastro_pb2_grpc
 
 def run():
-    if len(sys.argv) != 3:
-        print("Forneça a porta rpc como 1º argumento e a porta da base de dados com o 2º.")
+    if len(sys.argv) != 4:
+        print("""
+Forneça as seguintes portas como argumentos da linha de comando nesta ordem:
+gRPC
+base de dados de usuários
+base de dados de livros e empréstimos
+""")
         return
     
     rpcPort = int(sys.argv[1])
-    dbPort = int(sys.argv[2])
+    dbUsrPort = int(sys.argv[2])
+    dbLivPort = int(sys.argv[3])
 
-    serve(rpcPort, dbPort)
+    serve(rpcPort, dbUsrPort, dbLivPort)
 
-def serve(rpcPort: int, dbPort: int):
+def serve(rpcPort: int, dbUsrPort: int, dbLivPort: int):
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
-    cadastro_pb2_grpc.add_PortalCadastroServicer_to_server(PortalCadastroServicer(dbPort), server)
+    cadastro_pb2_grpc.add_PortalCadastroServicer_to_server(PortalCadastroServicer(dbUsrPort, dbLivPort), server)
     server.add_insecure_port(f'localhost:{rpcPort}')
     server.start()
     server.wait_for_termination()

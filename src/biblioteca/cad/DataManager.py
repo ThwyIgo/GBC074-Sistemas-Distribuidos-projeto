@@ -7,13 +7,14 @@ from biblioteca.common import Usuario, Livro
 from biblioteca.gRPC import database_pb2_grpc
 
 class DataManager():
-    def __init__(self, dbPort: int):
-        self.stub = database_pb2_grpc.DatabaseStub(grpc.insecure_channel(f'localhost:{dbPort}'))
-        self.usuarioManager = UsuarioManager(self.stub)
-        self.livroManager = LivroManager(self.stub)
+    def __init__(self, dbUsrPort: int, dbLivPort: int):
+        self.stubUsr = database_pb2_grpc.DatabaseStub(grpc.insecure_channel(f'localhost:{dbUsrPort}'))
+        self.stubLiv = database_pb2_grpc.DatabaseStub(grpc.insecure_channel(f'localhost:{dbLivPort}'))
+        self.usuarioManager = UsuarioManager(self.stubUsr)
+        self.livroManager = LivroManager(self.stubLiv)
 
     @multimethod
-    def contains(self, usuario: Usuario) -> bool:
+    def contains(self, usuario: Usuario) -> bool: # type: ignore
         return self.usuarioManager.contains(usuario)
     
     @multimethod

@@ -4,7 +4,7 @@ import grpc
 
 from biblioteca.gRPC import biblioteca_pb2_grpc, biblioteca_pb2
 
-stub: biblioteca_pb2_grpc.PortalBibliotecaStub = None
+stub: biblioteca_pb2_grpc.PortalBibliotecaStub
 
 def run():
     porta = int(sys.argv[1])
@@ -23,7 +23,7 @@ Opções:
 6 - Listar livros emprestados
 7 - Listar livros em falta
 8 - Pesquisar por livro
-              """)
+""")
         match int(input("Digite um número: ")):
             case 0:
                 break
@@ -71,7 +71,10 @@ def listEmprestados():
         print(livro)
 
 def listEmFalta():
-    pass
+    print("Livros em falta:")
+    livros = stub.ListaLivrosEmFalta(biblioteca_pb2.Vazia())
+    for livro in livros:
+        print(livro)
 
 def connect_stub(porta: int) -> biblioteca_pb2_grpc.PortalBibliotecaStub:
     channel = grpc.insecure_channel(f"localhost:{porta}")
