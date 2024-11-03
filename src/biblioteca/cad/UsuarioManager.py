@@ -1,6 +1,5 @@
 import jsonpickle
 import threading
-from types import SimpleNamespace
 from biblioteca.gRPC import cadastro_pb2
 
 from biblioteca.common import Usuario
@@ -16,7 +15,7 @@ class UsuarioManager():
             jsons: list[database_pb2.String] = list(self.stub.getPrefix(database_pb2.String(value='U')))
             self.usuarios = list(map(lambda j: jsonpickle.decode(j.value), jsons)) # type: ignore
 
-            print("Cache atualizado")
+            print("Cache usuários atualizado")
 
             if p:
                 threading.Timer(5, updateCache).start()

@@ -15,7 +15,7 @@ class LivroManager():
             jsons: list[database_pb2.String] = list(self.stub.getPrefix(database_pb2.String(value='L')))
             self.livros = list(map(lambda j: jsonpickle.decode(j.value), jsons)) # type: ignore
 
-            print("Cache atualizado")
+            print("Cache livros atualizado")
 
             if p:
                 threading.Timer(5, updateCache).start()
