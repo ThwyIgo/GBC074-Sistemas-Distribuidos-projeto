@@ -110,7 +110,7 @@ class PortalBibliotecaServicer(biblioteca_pb2_grpc.PortalBibliotecaServicer):
             if usuario.bloqueado:
                 usrCad = usuario.usuario_pb2
                 usrBib = biblioteca_pb2.Usuario(cpf=usrCad.cpf, nome=usrCad.nome, bloqueado=True)
-                emprestimos: Iterable[Emprestimo] = map(lambda s: jsonpickle.decode(s.value), self.stubLiv.getPrefix(database_pb2.String(value='E'+usuario.usuario_pb2.cpf))) # type: ignore
+                emprestimos = filter(lambda e: e.usuario == usuario, self.emprestimos)
                 livrosVencidos = map(lambda l: biblioteca_pb2.Livro(isbn=l.isbn, titulo=l.titulo, autor=l.autor, total=l.total),
                                       map(lambda e: e.livro.livro_pb2, 
                                           filter(lambda e: agora > e.timestamp + 10, emprestimos)))
