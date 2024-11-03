@@ -97,10 +97,12 @@ class PortalBibliotecaServicer(biblioteca_pb2_grpc.PortalBibliotecaServicer):
         pass
 
     def ListaLivrosEmprestados(self, request: biblioteca_pb2.Vazia, context):
-        pass
+        for livro in set(map(lambda e: e.livro, self.emprestimos)):
+            yield livro.livro_pb2
 
     def ListaLivrosEmFalta(self, request: biblioteca_pb2.Vazia, context):
-        pass
+        for livro in filter(lambda l: l.livro_pb2.total <= 0, self.livros):
+            yield livro.livro_pb2
 
     def PesquisaLivro(self, request: biblioteca_pb2.Criterio, context):
         pass

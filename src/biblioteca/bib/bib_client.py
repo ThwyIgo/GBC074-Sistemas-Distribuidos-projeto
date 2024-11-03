@@ -17,6 +17,12 @@ Opções:
 0 - Sair
 1 - Realizar empréstimo
 2 - Realizar devolução
+3 - Bloquear usuários
+4 - Liberar usuários
+5 - Listar usuários bloqueados
+6 - Listar livros emprestados
+7 - Listar livros em falta
+8 - Pesquisar por livro
               """)
         match int(input("Digite um número: ")):
             case 0:
@@ -25,6 +31,10 @@ Opções:
                 emprestimo()
             case 2:
                 devolucao()
+            case 6:
+                listEmprestados()
+            case 7:
+                listEmFalta()
             
 def emprestimo():
     print("Realizando empréstimo")
@@ -53,6 +63,15 @@ def devolucao():
         print("Devoluções realizadas com sucesso!")
     else:
         print(status.msg)
+
+def listEmprestados():
+    print("Livros emprestados:")
+    livros = stub.ListaLivrosEmprestados(biblioteca_pb2.Vazia())
+    for livro in livros:
+        print(livro)
+
+def listEmFalta():
+    pass
 
 def connect_stub(porta: int) -> biblioteca_pb2_grpc.PortalBibliotecaStub:
     channel = grpc.insecure_channel(f"localhost:{porta}")
