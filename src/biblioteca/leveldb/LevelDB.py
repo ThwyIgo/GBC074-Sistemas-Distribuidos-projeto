@@ -1,7 +1,7 @@
 from collections.abc import Iterable
 from pathlib import Path
 import plyvel
-from pysyncobj import SyncObj, replicated
+from pysyncobj import SyncObj, replicated_sync
 import atexit
 
 class LevelDB(SyncObj):
@@ -11,7 +11,7 @@ class LevelDB(SyncObj):
         self.db = plyvel.DB(dir, create_if_missing=True)
         atexit.register(self.db.close)
 
-    @replicated
+    @replicated_sync
     def put(self, key: str, val: str) -> None:
         self.db.put(key.encode(), val.encode())
 
@@ -22,9 +22,9 @@ class LevelDB(SyncObj):
         
         return got.decode()
     
-    @replicated
+    @replicated_sync
     def delete(self, key: str) -> None:
-        return self.db.delete(key.encode())
+        self.db.delete(key.encode())
     
     def getPrefix(self, prefix: str) -> list[str]:
         res: list[str] = list()

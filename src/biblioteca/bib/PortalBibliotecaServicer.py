@@ -1,8 +1,7 @@
 from collections.abc import Iterable
 from datetime import datetime
-import json
+import jsonpickle
 import threading
-from types import SimpleNamespace
 
 import grpc
 
@@ -19,12 +18,12 @@ class PortalBibliotecaServicer(biblioteca_pb2_grpc.PortalBibliotecaServicer):
         self.emprestimos: list[Emprestimo] = list()
         
         def updateCache(p = True):
-            jsons = list(self.stub.getPrefix(database_pb2.String(value='U')))
-            self.usuarios = list(map(lambda j: json.loads(j, object_hook=lambda d: SimpleNamespace(**d)), jsons))
+            jsons: list[database_pb2.String] = list(self.stub.getPrefix(database_pb2.String(value='U')))
+            self.usuarios = list(map(lambda j: jsonpickle.decode(j.value), jsons)) # type: ignore
             jsons = list(self.stub.getPrefix(database_pb2.String(value='L')))
-            self.livros = list(map(lambda j: json.loads(j, object_hook=lambda d: SimpleNamespace(**d)), jsons))
+            self.livros = list(map(lambda j: jsonpickle.decode(j.value), jsons)) # type: ignore
             jsons = list(self.stub.getPrefix(database_pb2.String(value='E')))
-            self.emprestimos = list(map(lambda j: json.loads(j, object_hook=lambda d: SimpleNamespace(**d)), jsons))
+            self.emprestimos = list(map(lambda j: jsonpickle.decode(j.value), jsons)) # type: ignore
 
             print("Cache atualizado")
 
@@ -37,7 +36,7 @@ class PortalBibliotecaServicer(biblioteca_pb2_grpc.PortalBibliotecaServicer):
     def RealizaEmprestimo(self, request_iterator: Iterable[biblioteca_pb2.UsuarioLivro], context) -> biblioteca_pb2.Status:
         for usrLiv in request_iterator:
             usuario: Usuario | None = next(filter(lambda u: u.usuario_pb2.cpf == usrLiv.usuario.id, self.usuarios), None)
-            livro: Livro | None = next(filter(lambda l: l.livro_pb2.isbn == usrLiv.usuario.id, self.livros), None)
+            livro: Livro | None = next(filter(lambda l: l.livro_pb2.isbn == usrLiv.livro.id, self.livros), None)
 
             if usuario == None or livro == None:
                 return biblioteca_pb2.Status(status=1, msg="Usuário ou livro não encontrado")
@@ -46,15 +45,20 @@ class PortalBibliotecaServicer(biblioteca_pb2_grpc.PortalBibliotecaServicer):
             if usuario.bloqueado:
                 return biblioteca_pb2.Status(status=1, msg=f"Usuário {usuario.usuario_pb2.nome} está bloqueado")
             
+            emprestimo = Emprestimo(usuario, livro, int(datetime.now().timestamp()))
+
+            if emprestimo in self.emprestimos:
+                return biblioteca_pb2.Status(status=1, msg="Empréstimo já existe")
+            
             livro.livro_pb2.total -= 1
             self.stub.put(database_pb2.String2(
                 fst='L'+livro.livro_pb2.isbn,
-                snd=json.dumps(livro)
+                snd=jsonpickle.encode(livro)
             ))
             
             self.stub.put(database_pb2.String2(
                 fst='E'+usuario.usuario_pb2.cpf,
-                snd=json.dumps(Emprestimo(usuario, livro, int(datetime.now().timestamp())))
+                snd=jsonpickle.encode(emprestimo)
             ))
 
             self.updateCache(False)
@@ -64,7 +68,7 @@ class PortalBibliotecaServicer(biblioteca_pb2_grpc.PortalBibliotecaServicer):
     def RealizaDevolucao(self, request_iterator: Iterable[biblioteca_pb2.UsuarioLivro], context) -> biblioteca_pb2.Status:
         for usrLiv in request_iterator:
             usuario: Usuario | None = next(filter(lambda u: u.usuario_pb2.cpf == usrLiv.usuario.id, self.usuarios), None)
-            livro: Livro | None = next(filter(lambda l: l.livro_pb2.isbn == usrLiv.usuario.id, self.livros), None)
+            livro: Livro | None = next(filter(lambda l: l.livro_pb2.isbn == usrLiv.livro.id, self.livros), None)
 
             if usuario == None or livro == None:
                 return biblioteca_pb2.Status(status=1, msg="Usuário ou livro não encontrado")
@@ -74,11 +78,11 @@ class PortalBibliotecaServicer(biblioteca_pb2_grpc.PortalBibliotecaServicer):
             livro.livro_pb2.total += 1
             self.stub.put(database_pb2.String2(
                 fst='L'+livro.livro_pb2.isbn,
-                snd=json.dumps(livro)
+                snd=jsonpickle.encode(livro)
             ))
             
             self.stub.deletar(database_pb2.String(value='E'+usuario.usuario_pb2.cpf))
-
+            #TODO desbloquear usuário se ele não tiver livros atrasados
             self.updateCache(False)
             
         return biblioteca_pb2.Status(status=0)
