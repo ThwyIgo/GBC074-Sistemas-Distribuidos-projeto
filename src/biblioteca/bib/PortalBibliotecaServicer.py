@@ -107,21 +107,48 @@ class PortalBibliotecaServicer(biblioteca_pb2_grpc.PortalBibliotecaServicer):
 
     def PesquisaLivro(self, request: biblioteca_pb2.Criterio, context):
         criterio2: str | None = None
-        [campo, tail] = request.criterio.split(':', 1)
+        op: str | None = None
+
+        [campo1, tail] = request.criterio.split(':', 1)
         if '&' in tail:
-            [valor, criterio2] = tail.split('&', 1)
+            [valor1, criterio2] = tail.split('&', 1)
+            op = '&'
         elif '|' in tail:
-            [valor, criterio2] = tail.split('|', 1)
+            [valor1, criterio2] = tail.split('|', 1)
+            op = '|'
         else:
-            valor = tail
-        self.buscaCampo(campo, valor)
+            valor1 = tail
 
-    def buscaCampo(self, campo: str, valor: str) -> Iterable[Livro]:
-        if campo == "isbn":
-            filtro = lambda l: l.livro_pb2.isbn == valor
-        elif campo == "titulo":
-            filtro = lambda l: l.livro_pb2.titulo == valor
-        elif campo == "autor":
-            filtro = lambda l: l.livro_pb2.autor == valor
+        if criterio2 == None:
+            for livro in self.buscaCampo(campo1, valor1):
+                yield livro.livro_pb2
+        else:
+            [campo2, valor2] = criterio2.split(':', 1)
+            for livro in self.buscaCampo(campo1, valor1, campo2, valor2, op):
+                yield livro.livro_pb2
 
-        return filter(filtro, self.livros)
+
+    def buscaCampo(self, campo1: str, valor1: str, campo2: str | None = None, valor2: str | None = None, op: str | None = None) -> Iterable[Livro]:
+        if campo1 == "isbn":
+            filtro1 = lambda l: l.livro_pb2.isbn == valor1
+        elif campo1 == "titulo":
+            filtro1 = lambda l: l.livro_pb2.titulo == valor1
+        elif campo1 == "autor":
+            filtro1 = lambda l: l.livro_pb2.autor == valor1
+
+        if op != None:
+            if campo2 == "isbn":
+                filtro2 = lambda l: l.livro_pb2.isbn == valor2
+            elif campo2 == "titulo":
+                filtro2 = lambda l: l.livro_pb2.titulo == valor2
+            elif campo2 == "autor":
+                filtro2 = lambda l: l.livro_pb2.autor == valor2
+
+            if op == '&':
+                filtro = lambda l: filtro1(l) and filtro2(l)
+            elif op == '|':
+                filtro = lambda l: filtro1(l) or filtro2(l)
+            
+            return filter(filtro, self.livros)
+
+        return filter(filtro1, self.livros)

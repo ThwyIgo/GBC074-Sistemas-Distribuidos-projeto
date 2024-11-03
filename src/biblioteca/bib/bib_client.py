@@ -35,6 +35,8 @@ Opções:
                 listEmprestados()
             case 7:
                 listEmFalta()
+            case 8:
+                pesquisa()
             
 def emprestimo():
     print("Realizando empréstimo")
@@ -73,6 +75,12 @@ def listEmprestados():
 def listEmFalta():
     print("Livros em falta:")
     livros = stub.ListaLivrosEmFalta(biblioteca_pb2.Vazia())
+    for livro in livros:
+        print(livro)
+
+def pesquisa():
+    string = input("Insira a string de busca: ")
+    livros = stub.PesquisaLivro(biblioteca_pb2.Criterio(criterio=string))
     for livro in livros:
         print(livro)
 
