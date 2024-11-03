@@ -99,9 +99,9 @@ def atualizarLivro():
 
 def buscarLivro():
         print("Buscando livro")
-        usuario = stub.ObtemLivro(cadastro_pb2.Identificador(id=input("isbn: ")))
+        livro = stub.ObtemLivro(cadastro_pb2.Identificador(id=input("isbn: ")))
         print("Livro encontrado:")
-        print(usuario)
+        print(livro)
 
 def connect_stub(porta: int) -> cadastro_pb2_grpc.PortalCadastroStub:
     channel = grpc.insecure_channel(f"localhost:{porta}")

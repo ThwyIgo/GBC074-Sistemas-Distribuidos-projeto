@@ -79,3 +79,6 @@ def listEmFalta():
 def connect_stub(porta: int) -> biblioteca_pb2_grpc.PortalBibliotecaStub:
     channel = grpc.insecure_channel(f"localhost:{porta}")
     return biblioteca_pb2_grpc.PortalBibliotecaStub(channel)
+
+if __name__ == '__main__':
+    run()

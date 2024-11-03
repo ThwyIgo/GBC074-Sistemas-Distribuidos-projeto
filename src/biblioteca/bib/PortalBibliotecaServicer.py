@@ -106,4 +106,22 @@ class PortalBibliotecaServicer(biblioteca_pb2_grpc.PortalBibliotecaServicer):
             yield livro.livro_pb2
 
     def PesquisaLivro(self, request: biblioteca_pb2.Criterio, context):
-        pass
+        criterio2: str | None = None
+        [campo, tail] = request.criterio.split(':', 1)
+        if '&' in tail:
+            [valor, criterio2] = tail.split('&', 1)
+        elif '|' in tail:
+            [valor, criterio2] = tail.split('|', 1)
+        else:
+            valor = tail
+        self.buscaCampo(campo, valor)
+
+    def buscaCampo(self, campo: str, valor: str) -> Iterable[Livro]:
+        if campo == "isbn":
+            filtro = lambda l: l.livro_pb2.isbn == valor
+        elif campo == "titulo":
+            filtro = lambda l: l.livro_pb2.titulo == valor
+        elif campo == "autor":
+            filtro = lambda l: l.livro_pb2.autor == valor
+
+        return filter(filtro, self.livros)
