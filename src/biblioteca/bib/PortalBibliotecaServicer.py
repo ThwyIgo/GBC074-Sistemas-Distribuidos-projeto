@@ -82,7 +82,7 @@ class PortalBibliotecaServicer(biblioteca_pb2_grpc.PortalBibliotecaServicer):
                 snd=jsonpickle.encode(livro)
             ))
             
-            self.stubLiv.deletar(database_pb2.String(value='E'+usuario.usuario_pb2.cpf))
+            self.stubLiv.deletar(database_pb2.String(value='E'+usuario.usuario_pb2.cpf+livro.livro_pb2.isbn))
             #TODO desbloquear usuário se ele não tiver livros atrasados
             self.updateCache(False)
             
@@ -98,10 +98,25 @@ class PortalBibliotecaServicer(biblioteca_pb2_grpc.PortalBibliotecaServicer):
                 self.stubUsr.put(database_pb2.String2(fst=usr.usuario_pb2.cpf, snd=jsonpickle.encode(usr)))
                 qtd += 1
 
+        self.updateCache(False)
         return biblioteca_pb2.Status(status=qtd)
 
     def LiberaUsuarios(self, request: biblioteca_pb2.Vazia, context) -> biblioteca_pb2.Status:
-        pass
+        agora = int(datetime.now().timestamp())
+        usuariosASeremLiberados: set[Usuario] = set(self.usuarios)
+        for emprestimo in self.emprestimos:
+            if agora > emprestimo.timestamp + 10:
+                usuariosASeremLiberados.remove(emprestimo.usuario)
+        
+        qtd = 0
+        for usr in filter(lambda u: u.bloqueado, usuariosASeremLiberados):
+            usr.bloqueado = False
+            self.stubUsr.put(database_pb2.String2(fst=usr.usuario_pb2.cpf, snd=jsonpickle.encode(usr)))
+            qtd += 1
+
+        self.updateCache(False)
+        return biblioteca_pb2.Status(status=qtd)
+
 
     def ListaUsuariosBloqueados(self, request: biblioteca_pb2.Vazia, context):
         agora = int(datetime.now().timestamp())

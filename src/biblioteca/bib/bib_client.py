@@ -33,6 +33,8 @@ Opções:
                 devolucao()
             case 3:
                 bloquear()
+            case 4:
+                liberar()
             case 5:
                 listBloqueados()
             case 6:
@@ -73,6 +75,10 @@ def devolucao():
 def bloquear():
     status: biblioteca_pb2.Status = stub.BloqueiaUsuarios(biblioteca_pb2.Vazia())
     print("Usuários que foram bloqueados:", status.status)
+
+def liberar():
+    status: biblioteca_pb2.Status = stub.LiberaUsuarios(biblioteca_pb2.Vazia())
+    print("Usuários que foram liberados:", status.status)    
 
 def listBloqueados():
     print("Usuários bloqueados:")
