@@ -89,13 +89,32 @@ class PortalBibliotecaServicer(biblioteca_pb2_grpc.PortalBibliotecaServicer):
         return biblioteca_pb2.Status(status=0)
 
     def BloqueiaUsuarios(self, request: biblioteca_pb2.Vazia, context) -> biblioteca_pb2.Status:
-        pass
+        qtd = 0
+        agora = int(datetime.now().timestamp())
+        for emprestimo in self.emprestimos:
+            if agora > emprestimo.timestamp + 10:
+                usr = next(filter(lambda u: u == emprestimo.usuario, self.usuarios))
+                usr.bloqueado = True
+                self.stubUsr.put(database_pb2.String2(fst=usr.usuario_pb2.cpf, snd=jsonpickle.encode(usr)))
+                qtd += 1
+
+        return biblioteca_pb2.Status(status=qtd)
 
     def LiberaUsuarios(self, request: biblioteca_pb2.Vazia, context) -> biblioteca_pb2.Status:
         pass
 
     def ListaUsuariosBloqueados(self, request: biblioteca_pb2.Vazia, context):
-        pass
+        agora = int(datetime.now().timestamp())
+
+        for usuario in self.usuarios:
+            if usuario.bloqueado:
+                usrCad = usuario.usuario_pb2
+                usrBib = biblioteca_pb2.Usuario(cpf=usrCad.cpf, nome=usrCad.nome, bloqueado=True)
+                emprestimos: Iterable[Emprestimo] = map(lambda s: jsonpickle.decode(s.value), self.stubLiv.getPrefix(database_pb2.String(value='E'+usuario.usuario_pb2.cpf))) # type: ignore
+                livrosVencidos = map(lambda l: biblioteca_pb2.Livro(isbn=l.isbn, titulo=l.titulo, autor=l.autor, total=l.total),
+                                      map(lambda e: e.livro.livro_pb2, 
+                                          filter(lambda e: agora > e.timestamp + 10, emprestimos)))
+                yield biblioteca_pb2.UsuarioBloqueado(usuario=usrBib, livros=livrosVencidos)
 
     def ListaLivrosEmprestados(self, request: biblioteca_pb2.Vazia, context):
         for livro in set(map(lambda e: e.livro, self.emprestimos)):

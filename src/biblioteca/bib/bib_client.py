@@ -31,6 +31,10 @@ Opções:
                 emprestimo()
             case 2:
                 devolucao()
+            case 3:
+                bloquear()
+            case 5:
+                listBloqueados()
             case 6:
                 listEmprestados()
             case 7:
@@ -65,6 +69,16 @@ def devolucao():
         print("Devoluções realizadas com sucesso!")
     else:
         print(status.msg)
+
+def bloquear():
+    status: biblioteca_pb2.Status = stub.BloqueiaUsuarios(biblioteca_pb2.Vazia())
+    print("Usuários que foram bloqueados:", status.status)
+
+def listBloqueados():
+    print("Usuários bloqueados:")
+    usuarios = stub.ListaUsuariosBloqueados(biblioteca_pb2.Vazia())
+    for usuario in usuarios:
+        print(usuario)
 
 def listEmprestados():
     print("Livros emprestados:")
