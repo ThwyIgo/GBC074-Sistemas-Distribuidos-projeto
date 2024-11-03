@@ -13,7 +13,6 @@ class LevelDB(SyncObj):
 
     @replicated
     def put(self, key: str, val: str) -> None:
-        print(key, val)
         self.db.put(key.encode(), val.encode())
 
     def get(self, key: str) -> str | None:
