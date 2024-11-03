@@ -1,15 +1,16 @@
 from multimethod import multimethod
-from collections.abc import Iterable
-from pysyncobj import SyncObj, replicated
+import grpc
 
 from biblioteca.cad import UsuarioManager, LivroManager
 from biblioteca.common import Usuario, Livro
 
-class DataManager(SyncObj):
-    def __init__(self, selfAddr: str, otherAddrs: Iterable[str]):
-        super().__init__(selfAddr, otherAddrs)
-        self.usuarioManager = UsuarioManager()
-        self.livroManager = LivroManager()
+from biblioteca.gRPC import database_pb2_grpc
+
+class DataManager():
+    def __init__(self, dbPort: int):
+        self.stub = database_pb2_grpc.DatabaseStub(grpc.insecure_channel(f'localhost:{dbPort}'))
+        self.usuarioManager = UsuarioManager(self.stub)
+        self.livroManager = LivroManager(self.stub)
 
     @multimethod
     def contains(self, usuario: Usuario) -> bool:
@@ -19,27 +20,21 @@ class DataManager(SyncObj):
     def contains(self, livro: Livro) -> bool:
         return self.livroManager.contains(livro)
 
-    @replicated
     def addUsuario(self, usuario: Usuario) -> None:
         self.usuarioManager.add(usuario)
 
-    @replicated
     def addLivro(self, livro: Livro) -> None:
         self.livroManager.add(livro)
 
-    @replicated
     def removeUsuario(self, usuario: Usuario) -> None:
         self.usuarioManager.remove(usuario)
 
-    @replicated
     def removeLivro(self, livro: Livro) -> None:
         self.livroManager.remove(livro)
     
-    @replicated
     def updateUsuario(self, usuario: Usuario) -> None:
         self.usuarioManager.update(usuario)
 
-    @replicated
     def updateLivro(self, livro: Livro) -> None:
         self.livroManager.update(livro)
     

@@ -21,6 +21,7 @@ dependencies = [
    "grpcio-tools",
    "pysyncobj",
    "multimethod",
+   "jsonpickle",
 ]
 
 [project.optional-dependencies]

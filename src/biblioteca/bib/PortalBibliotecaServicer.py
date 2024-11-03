@@ -2,6 +2,7 @@ from collections.abc import Iterable
 from datetime import datetime
 import json
 import threading
+from types import SimpleNamespace
 
 import grpc
 
@@ -18,9 +19,12 @@ class PortalBibliotecaServicer(biblioteca_pb2_grpc.PortalBibliotecaServicer):
         self.emprestimos: list[Emprestimo] = list()
         
         def updateCache(p = True):
-            self.usuarios = list(self.stub.getPrefix(database_pb2.String(value='U')))
-            self.livros = list(self.stub.getPrefix(database_pb2.String(value='L')))
-            self.emprestimos = list(self.stub.getPrefix(database_pb2.String(value='E')))
+            jsons = list(self.stub.getPrefix(database_pb2.String(value='U')))
+            self.usuarios = list(map(lambda j: json.loads(j, object_hook=lambda d: SimpleNamespace(**d)), jsons))
+            jsons = list(self.stub.getPrefix(database_pb2.String(value='L')))
+            self.livros = list(map(lambda j: json.loads(j, object_hook=lambda d: SimpleNamespace(**d)), jsons))
+            jsons = list(self.stub.getPrefix(database_pb2.String(value='E')))
+            self.emprestimos = list(map(lambda j: json.loads(j, object_hook=lambda d: SimpleNamespace(**d)), jsons))
 
             print("Cache atualizado")
 

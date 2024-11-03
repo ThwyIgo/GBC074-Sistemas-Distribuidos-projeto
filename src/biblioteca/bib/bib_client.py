@@ -4,7 +4,7 @@ import grpc
 
 from biblioteca.gRPC import biblioteca_pb2_grpc, biblioteca_pb2
 
-stub: biblioteca_pb2_grpc.PortalBibliotecaStub | None = None
+stub: biblioteca_pb2_grpc.PortalBibliotecaStub = None
 
 def run():
     porta = int(sys.argv[1])

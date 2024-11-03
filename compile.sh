@@ -42,7 +42,7 @@ genRequirements() {
 
 installDeps() {
     isDebug && printf "Instalando dependências...\n"
-    $PYTHON -m pip install -U pip wheel setuptools build pysyncobj plyvel multimethod
+    $PYTHON -m pip install -U pip wheel setuptools build pysyncobj plyvel multimethod jsonpickle
     $PYTHON -m pip install -U grpcio-tools
 }
 

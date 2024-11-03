@@ -22,4 +22,4 @@ class DatabaseServicer(database_pb2_grpc.DatabaseServicer):
     
     def getPrefix(self, request: database_pb2.String, context):
         for s in self.db.getPrefix(request.value):
-            yield s
+            yield database_pb2.String(value=s)
