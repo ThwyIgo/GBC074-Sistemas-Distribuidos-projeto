@@ -11,34 +11,19 @@ Enquanto o projeto está em desenvolvimento, é recomendado instalá-lo de forma
 editável. Isso pode ser feito com o comando `./compile.sh dev`, assim, as
 alterações no código fonte serão refletidas diretamente no projeto instalado e
 os scripts de execução poderão ser utilizados com uma menor margem para erros.  
-É necessário iniciar o mosquitto manualmente antes de executar os scripts,
-exceto o compile.sh.
+
+Primeiro execute `db-server.sh`; depois `bib-server.sh` e `cad-server.sh`; e por último, `bib-client.sh` e `cad-client.sh`.  
+Caso os scripts sejam executados sem argumentos, intruções sobre seu uso serão impressas.  
+O arquivo `teste.sh` já inicia todos os servidores automaticamente. Ele pode servir como exemplo de uso.  
 
 # Uso dos programas
 Há um vídeo neste repositório exemplificando como os programas funcionam.
 
-# JSONs utilizados
-Foi utilizado um campo "remetente" para que um servidor possa identificar uma mensagem que ele mesmo pulicou e assim não fazer operações repetidas.  
-Para sincronização de Usuários entre servidores de cadastro:  
-```json
-{
-    "remetente": int,
-    "cpf": string,
-    "nome": string,
-    "bloqueado": bool
-}
-```
-Para sincronização de Livros entre servidores de cadastro:  
-```json
-{
-    "remetente": int,
-    "isbn": string,
-    "titulo": string,
-    "autor": string,
-    "total": int
-}
-```
-
 # Funcionalidades não implementadas
-- Funções de listagem e pesquisa do portal biblioteca
-- Bloqueio de usuários
+A funcionalidade do usuário ser liberado automaticamente quando faz uma devolução, não foi feita. Caso essa funcionalidade
+fosse implementada, a função LiberaUsuarios seria inútil, pois não haveria possibilidade de um usuário estar bloqueado
+"injustamente", ou seja, LiberaUsuarios sempre retornaria que 0 usuários foram liberados.
+
+# Banco de dados
+Os arquivos do banco de dados estão hardcoded para serem salvos no diretório /tmp/db. Certifique-se de que o programa tenha
+permissão de escrita nele.

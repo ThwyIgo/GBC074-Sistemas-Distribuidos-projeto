@@ -7,6 +7,10 @@ from biblioteca.gRPC import biblioteca_pb2_grpc, biblioteca_pb2
 stub: biblioteca_pb2_grpc.PortalBibliotecaStub
 
 def run():
+    if len(sys.argv) != 2:
+        print("Forneça a porta RPC do bib-server como argumento da linha de comando.")
+        return
+
     porta = int(sys.argv[1])
     global stub
     stub = connect_stub(porta)

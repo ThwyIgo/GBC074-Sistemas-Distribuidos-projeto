@@ -84,6 +84,8 @@ class PortalBibliotecaServicer(biblioteca_pb2_grpc.PortalBibliotecaServicer):
             
             self.stubLiv.deletar(database_pb2.String(value='E'+usuario.usuario_pb2.cpf+livro.livro_pb2.isbn))
             #TODO desbloquear usuário se ele não tiver livros atrasados
+            # Se o usuário já é liberado automaticamente quando faz uma devolução, em que situação a função LiberaUsuarios
+            # seria útil?
             self.updateCache(False)
             
         return biblioteca_pb2.Status(status=0)

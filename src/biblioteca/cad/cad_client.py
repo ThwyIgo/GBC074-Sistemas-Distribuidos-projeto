@@ -4,9 +4,13 @@ import grpc
 
 from biblioteca.gRPC import cadastro_pb2, cadastro_pb2_grpc
 
-stub: cadastro_pb2_grpc.PortalCadastroStub = None
+stub: cadastro_pb2_grpc.PortalCadastroStub
 
 def run():
+    if len(sys.argv) != 2:
+        print("Forneça a porta RPC do cad-server como argumento da linha de comando.")
+        return
+
     porta = int(sys.argv[1])
     global stub
     stub = connect_stub(porta)
